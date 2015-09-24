@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>so.blacklight</groupId>
-    <artifactId>vault</artifactId>
+    <artifactId>dungeon</artifactId>
     <version>1.0.0</version>
     <modules>
-        <module>vault-core</module>
+        <module>dungeon-core</module>
         <module>vaultfx</module>
     </modules>
 

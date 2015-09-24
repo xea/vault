@@ -1,2 +1,2 @@
-# vault
+# dungeon
 Safe password storage
