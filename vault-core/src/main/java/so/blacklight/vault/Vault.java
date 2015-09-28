@@ -1,5 +1,8 @@
 package so.blacklight.vault;
 
+import so.blacklight.vault.crypto.EncryptionParameters;
+import so.blacklight.vault.crypto.VaultEncryptor;
+
 import javax.crypto.SealedObject;
 import java.io.Serializable;
 import java.time.Instant;

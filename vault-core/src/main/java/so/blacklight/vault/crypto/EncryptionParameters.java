@@ -1,4 +1,6 @@
-package so.blacklight.vault;
+package so.blacklight.vault.crypto;
+
+import so.blacklight.vault.Credentials;
 
 public class EncryptionParameters {
 
