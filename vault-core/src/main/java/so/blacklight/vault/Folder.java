@@ -28,4 +28,8 @@ public class Folder implements Serializable {
             entries.add(entry);
         }
     }
+
+    public List<VaultEntry> getEntries() {
+        return new CopyOnWriteArrayList<>(entries);
+    }
 }

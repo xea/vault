@@ -10,11 +10,13 @@
     <modules>
         <module>vault-core</module>
         <module>vaultfx</module>
+        <module>vault-cli</module>
     </modules>
 
     <packaging>pom</packaging>
 
     <properties>
+        <commandline.version>1.7.0</commandline.version>
         <junit.version>4.12</junit.version>
         <scrypt.version>1.4.0</scrypt.version>
         <yubikey-client.version>3.0.1</yubikey-client.version>
@@ -22,6 +24,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.github.jankroken</groupId>
+                <artifactId>commandline</artifactId>
+                <version>${commandline.version}</version>
+            </dependency>
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>

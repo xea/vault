@@ -8,6 +8,7 @@ import javax.crypto.SealedObject;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -116,6 +117,15 @@ public class Vault implements Serializable {
 
         return null;
     }
+
+    public Optional<Folder> getFolder(final String folderName) {
+        if (status == VaultStatus.UNLOCKED) {
+            return primarySegment.getFolders().stream().filter(folder -> folder.getName().equals(folderName)).findFirst();
+        } else {
+            return Optional.empty();
+        }
+    }
+
 
     public Folder deleteFolder(final String folderName) {
         return null;
