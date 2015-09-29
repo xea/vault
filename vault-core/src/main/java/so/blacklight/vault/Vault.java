@@ -1,14 +1,15 @@
 package so.blacklight.vault;
 
+import so.blacklight.vault.crypto.EncryptionException;
 import so.blacklight.vault.crypto.EncryptionParameters;
 import so.blacklight.vault.crypto.VaultEncryptor;
 
 import javax.crypto.SealedObject;
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 /**
  * A Vault is a collection of secrets organised into a flat folder-based hierarchy.
@@ -63,20 +64,35 @@ public class Vault implements Serializable {
         if (status != VaultStatus.UNLOCKED) {
             final VaultEncryptor encryptor = new VaultEncryptor();
             final EncryptionParameters params = new EncryptionParameters(credentials);
-            primarySegment = encryptor.decryptSegment(sealedPrimarySegment, params);
-            status = VaultStatus.UNLOCKED;
+            try {
+                primarySegment = encryptor.decryptSegment(sealedPrimarySegment, params);
+                status = VaultStatus.UNLOCKED;
+            } catch (final EncryptionException e) {
+                // TODO error handling
+            }
         }
     }
 
     public List<String> getFolderNames() {
-        final List<String> folderNames;
-        if (status == VaultStatus.LOCKED) {
-            folderNames = new ArrayList<>();
-        } else {
-            // TODO actually return folder list
-            folderNames = new ArrayList<>();
-        }
+        final List<String> folderNames = getFolders().stream().map(Folder::getName).collect(Collectors.toList());
+
         return folderNames;
+    }
+
+    protected List<Folder> getFolders() {
+        final List<Folder> folders = new CopyOnWriteArrayList<>();
+
+        if (status == VaultStatus.UNLOCKED) {
+            folders.addAll(primarySegment.getFolders());
+        } else if (status == VaultStatus.DEGRADED) {
+            folders.addAll(resolveSecondarySegment().getFolders());
+        }
+
+        return folders;
+    }
+
+    protected VaultSegment resolveSecondarySegment() {
+        return primarySegment;
     }
 
     public VaultStatus getStatus() {
@@ -84,7 +100,25 @@ public class Vault implements Serializable {
     }
 
     protected void generateSecondarySegments() {
+        if (status == VaultStatus.UNLOCKED) {
 
+        }
+    }
+
+    public Folder createFolder(final String folderName) {
+        if (status == VaultStatus.UNLOCKED) {
+            final Folder folder = new Folder(folderName);
+
+            primarySegment.getFolders().add(folder);
+
+            return folder;
+        }
+
+        return null;
+    }
+
+    public Folder deleteFolder(final String folderName) {
+        return null;
     }
 
 }

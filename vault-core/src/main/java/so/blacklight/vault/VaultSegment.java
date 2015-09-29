@@ -2,6 +2,7 @@ package so.blacklight.vault;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class VaultSegment implements Serializable {
 
@@ -9,4 +10,11 @@ public class VaultSegment implements Serializable {
 
     private List<Folder> folders;
 
+    public VaultSegment() {
+        folders = new CopyOnWriteArrayList<>();
+    }
+
+    public List<Folder> getFolders() {
+        return folders;
+    }
 }
