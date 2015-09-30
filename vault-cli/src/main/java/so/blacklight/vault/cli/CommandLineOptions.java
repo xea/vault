@@ -35,7 +35,7 @@ public class CommandLineOptions {
     @Option
     @LongSwitch("create")
     @ShortSwitch("c")
-    @Toggle(false)
+    @Toggle(true)
     public void setCreateVault(boolean createVault) {
         this.createVault = createVault;
     }
