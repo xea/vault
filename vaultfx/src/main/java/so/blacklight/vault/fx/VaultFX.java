@@ -20,8 +20,8 @@ public class VaultFX extends Application {
 
     @Override
     public void start(final Stage primaryStage) throws Exception {
-        final Parent root = FXMLLoader.load(getClass().getResource("/vault.fxml"));
-        final Scene scene = new Scene(root, 1024, 600);
+        final Parent root = FXMLLoader.load(getClass().getResource("/welcome.fxml"));
+        final Scene scene = new Scene(root, 480, 300);
 
         primaryStage.setTitle(APPLICATION_TITLE);
         primaryStage.setScene(scene);
