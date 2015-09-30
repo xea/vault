@@ -37,6 +37,11 @@
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
+                            <archive>
+                                <manifest>
+                                    <mainClass>so.blacklight.vault.cli.VaultCLI</mainClass>
+                                </manifest>
+                            </archive>
                         </configuration>
                         <executions>
                             <execution>
