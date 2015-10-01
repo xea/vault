@@ -3,6 +3,7 @@ package so.blacklight.vault.cli;
 import com.github.jankroken.commandline.CommandLineParser;
 import com.github.jankroken.commandline.OptionStyle;
 import so.blacklight.vault.Credentials;
+import so.blacklight.vault.Folder;
 import so.blacklight.vault.Vault;
 import so.blacklight.vault.VaultStore;
 
@@ -31,11 +32,13 @@ public class VaultCLI {
      * Attempt to execute user request
      * @param opts command line options
      */
-    public void processRequest(final CLIOptions opts) throws IOException {
+    public void processRequest(final CLIOptions opts) throws IOException, ClassNotFoundException {
         switch (opts.getAction()) {
             case CREATE_VAULT:
                 createVault(opts);
                 break;
+            case CREATE_FOLDER:
+                createFolder(opts);
             case SHOW_USAGE:
                 showUsage();
                 break;
@@ -70,6 +73,60 @@ public class VaultCLI {
         }
         //final StringSelection ss = new StringSelection("valami");
         //Toolkit.getDefaultToolkit().getSystemClipboard().setContents(ss, ss);
+    }
+    
+    protected void createFolder(final CLIOptions opts) throws IOException, ClassNotFoundException {
+    	final File vaultFile = new File(opts.getVaultPath());
+    	
+    	if (vaultFile.exists()) {
+    		
+    		final VaultStore store = new VaultStore();
+    		final Optional<Vault> loadedVault = store.load(vaultFile);
+    			
+    		if (loadedVault.isPresent() && opts.getFolderName() != null) {
+    			final Optional<Credentials> credentials = readCredentials();
+    			
+    			if (credentials.isPresent()) {
+    				final Vault vault = loadedVault.get();
+    				vault.unlock(credentials.get());
+                    vault.createFolder(opts.getFolderName());
+                    vault.lock(credentials.get());
+                    store.save(vault, vaultFile);
+    			}
+    				
+    		} else {
+                System.out.println("ERROR: Couldn't find selected folder");
+            }
+    	} else {
+    		System.out.println("ERROR: Vault file does not exist: " + vaultFile.getAbsolutePath());
+    	}
+    }
+
+    protected void createEntry(final CLIOptions opts) throws Exception {
+
+    }
+
+    protected Optional<Folder> loadFolder(final CLIOptions opts) throws IOException, ClassNotFoundException {
+        final File vaultFile = new File(opts.getVaultPath());
+
+        if (vaultFile.exists()) {
+            final VaultStore store = new VaultStore();
+            final Optional<Vault> loadedVault = store.load(vaultFile);
+
+            if (loadedVault.isPresent() && opts.getFolderName() != null) {
+                final Optional<Credentials> credentials = readCredentials();
+
+                if (credentials.isPresent()) {
+                    final Vault vault = loadedVault.get();
+                    vault.unlock(credentials.get());
+                    final Optional<Folder> folder = vault.getFolder(opts.getFolderName());
+
+                    return folder;
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 
     protected Optional<Credentials> readCredentials() {

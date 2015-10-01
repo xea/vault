@@ -1,8 +1,10 @@
 package so.blacklight.vault.cli;
 
-import com.github.jankroken.commandline.annotations.*;
-
-import java.util.Optional;
+import com.github.jankroken.commandline.annotations.LongSwitch;
+import com.github.jankroken.commandline.annotations.Option;
+import com.github.jankroken.commandline.annotations.ShortSwitch;
+import com.github.jankroken.commandline.annotations.SingleArgument;
+import com.github.jankroken.commandline.annotations.Toggle;
 
 /**
  * Encapsulates user-supplied arguments
@@ -10,6 +12,8 @@ import java.util.Optional;
 public class CLIOptions {
 
     private String vaultPath = VaultCLI.DEFAULT_VAULT_PATH;
+
+    private String folderName = null;
 
     private VaultAction action = VaultAction.NONE;
 
@@ -70,4 +74,15 @@ public class CLIOptions {
         action = VaultAction.SHOW_USAGE;
     }
 
+    public String getFolderName() {
+        return folderName;
+    }
+
+    @Option
+    @LongSwitch("folder")
+    @ShortSwitch("f")
+    @SingleArgument
+    public void setFolderName(String folderName) {
+        this.folderName = folderName;
+    }
 }

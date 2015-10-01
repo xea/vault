@@ -26,7 +26,7 @@ public class Vault implements Serializable {
 
     private final Instant createTime;
 
-    private final Instant modifyTime;
+    private Instant modifyTime;
 
     private SealedObject sealedPrimarySegment;
 
@@ -52,6 +52,7 @@ public class Vault implements Serializable {
         } else if (status == VaultStatus.UNLOCKED) {
             final VaultEncryptor encryptor = new VaultEncryptor();
             final EncryptionParameters params = new EncryptionParameters(credentials);
+            modifyTime = Instant.now();
             generateSecondarySegments();
             sealedPrimarySegment = encryptor.encryptSegment(primarySegment, params);
             sealedSecondarySegments = sealedPrimarySegment;

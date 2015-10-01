@@ -10,6 +10,10 @@ import java.security.MessageDigest;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
 
+/**
+ * 
+ *
+ */
 public class VaultEncryptor {
 
     private static final String SEGMENT_CIPHER = "AES/CBC/PKCS5Padding";
