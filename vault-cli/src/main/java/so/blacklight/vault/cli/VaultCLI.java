@@ -5,76 +5,120 @@ import com.github.jankroken.commandline.OptionStyle;
 import so.blacklight.vault.Credentials;
 import so.blacklight.vault.Vault;
 import so.blacklight.vault.VaultStore;
-import so.blacklight.vault.entry.PasswordEntry;
 
-import java.io.*;
+import java.io.Console;
+import java.io.File;
+import java.io.IOException;
+import java.security.Provider;
+import java.security.Security;
+import java.util.Optional;
 
+/**
+ * Provides a command line utility for accessing secure vaults.
+ */
 public class VaultCLI {
 
     public static final String DEFAULT_VAULT_PATH = "vault.vlt";
 
-    private final CommandLineOptions opts;
+    public static void main(final String[] args) throws Exception {
+        final CLIOptions cliOpts = CommandLineParser.parse(CLIOptions.class, args, OptionStyle.SIMPLE);
+        final VaultCLI cli = new VaultCLI();
 
-    private final Vault vault;
+        cli.processRequest(cliOpts);
+    }
 
-    public VaultCLI(final CommandLineOptions opts) throws IOException, ClassNotFoundException {
-        this.opts = opts;
+    /**
+     * Attempt to execute user request
+     * @param opts command line options
+     */
+    public void processRequest(final CLIOptions opts) throws IOException {
+        switch (opts.getAction()) {
+            case CREATE_VAULT:
+                createVault(opts);
+                break;
+            case SHOW_USAGE:
+                showUsage();
+                break;
+            case DEBUG:
+                showDebugInfo();
+                break;
+            default:
+                showUsage();
+                break;
+        }
+    }
 
-        final File vaultFile = new File(opts.getVaultPath().orElse(DEFAULT_VAULT_PATH));
+    /**
+     * Creates a new, empty vault.
+     * @param opts
+     */
+    protected void createVault(final CLIOptions opts) throws IOException {
+        final File vaultFile = new File(opts.getVaultPath());
 
         if (vaultFile.exists()) {
-            vault = new VaultStore().load(vaultFile).get();
+            System.out.println("ERROR: File " + vaultFile.getAbsolutePath() + " already exists");
         } else {
-            if (opts.isCreateVault()) {
-                vault = new Vault();
+            final Optional<Credentials> credentials = readCredentials();
+
+            if (credentials.isPresent()) {
+                final Vault vault = new Vault();
+                vault.lock(credentials.get());
+                new VaultStore().save(vault, vaultFile);
             } else {
-                throw new FileNotFoundException(vaultFile.getAbsolutePath());
+                System.out.println("ERROR: Could not read credentials");
+            }
+        }
+        //final StringSelection ss = new StringSelection("valami");
+        //Toolkit.getDefaultToolkit().getSystemClipboard().setContents(ss, ss);
+    }
+
+    protected Optional<Credentials> readCredentials() {
+        final Console console = System.console();
+
+        if (console == null) {
+            // TODO provide fallback method of entering credentials
+            return Optional.empty();
+        } else {
+            System.out.print("Enter vault password: ");
+            final String password1 = String.valueOf(console.readPassword());
+            System.out.print("Enter vault password again: ");
+            final String password2 = String.valueOf(console.readPassword());
+
+            if (password1.equals(password2)) {
+                System.out.print("Enter one-time password: ");
+                final char[] otp = System.console().readPassword();
+
+                final Credentials credentials = new Credentials(String.valueOf(password1), String.valueOf(otp));
+
+                return Optional.of(credentials);
+            } else {
+                return Optional.empty();
             }
         }
     }
 
-    public void processCommand() {
+    /**
+     * Display a helpful message explaining how to use this program to the screen
+     */
+    protected void showUsage() {
+        final String fmt = "    %-20s %s";
+        System.out.println("Usage: java -jar vault.jar -a <action> -v <vault> [-f <folder>]");
+        System.out.println("  where <action> is one of the following:");
+        System.out.println(String.format(fmt, "create-vault", "Create new vault"));
+        System.out.println(String.format(fmt, "create-folder", "Create new folder"));
+        System.out.println(String.format(fmt, "create-entry", "Create new entry within the specified folder"));
+    }
 
-        if (opts.isCreateVault()) {
-            final File file = new File(opts.getVaultPath().orElse(DEFAULT_VAULT_PATH));
-            createVault(file);
-        } else if (opts.getListFolder().isPresent()) {
-            listEntries();
+    protected void showDebugInfo() {
+        final Provider[] providers = Security.getProviders();
+        for (final Provider p : providers)
+        {
+            System.out.format("%s %s%s", p.getName(), p.getVersion(), System.getProperty("line.separator"));
+            for (final Object o : p.keySet())
+            {
+                System.out.format("\t%s : %s%s", o, p.getProperty((String)o), System.getProperty("line.separator"));
+            }
         }
-    }
-
-    protected void createVault(final File outputFile) {
-        try {
-            vault.createFolder("test folder").addEntry(new PasswordEntry("user", "pass", "info"));
-
-            new VaultStore().save(vault, outputFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    protected void listEntries() {
-        System.out.print("Passphrase: ");
-        final char[] passphrase = System.console().readPassword();
-        System.out.print("OTP: ");
-        final char[] otp = System.console().readPassword();
-        final String p1 = new String(passphrase);
-        final String p2 = new String(otp);
-
-        final Credentials credentials = new Credentials(p1, p2);
-        vault.unlock(credentials);
-        vault.getFolderNames().forEach(name -> {
-            vault.getFolder(name).get().getEntries().forEach(System.out::println);
-        });
-    }
-
-
-    public static final void main(final String[] args) throws Exception {
-        final CommandLineOptions cliOpts = CommandLineParser.parse(CommandLineOptions.class, args, OptionStyle.SIMPLE);
-
-        final VaultCLI cli = new VaultCLI(cliOpts);
-        cli.processCommand();
     }
 
 }

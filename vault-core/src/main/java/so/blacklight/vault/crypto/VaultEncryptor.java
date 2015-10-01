@@ -34,7 +34,6 @@ public class VaultEncryptor {
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(ivbytes));
             sealedObject = new SealedObject(segment, cipher);
         } catch (final Exception e) {
-            // TODO Replace RuntimeException with a checked exception
             throw new RuntimeException("Couldn't encrypt segment: " + e.getMessage());
         }
         return sealedObject;
