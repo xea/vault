@@ -6,6 +6,8 @@ import so.blacklight.vault.Credentials;
 import so.blacklight.vault.Folder;
 import so.blacklight.vault.Vault;
 import so.blacklight.vault.VaultStore;
+import so.blacklight.vault.entry.PasswordEntry;
+import so.blacklight.vault.entry.VaultEntry;
 
 import java.io.Console;
 import java.io.File;
@@ -28,129 +30,142 @@ public class VaultCLI {
         cli.processRequest(cliOpts);
     }
 
-    /**
-     * Attempt to execute user request
-     * @param opts command line options
-     */
-    public void processRequest(final CLIOptions opts) throws IOException, ClassNotFoundException {
-        switch (opts.getAction()) {
+    protected void processRequest(final CLIOptions options) throws VaultException, IOException {
+        switch (options.getAction()) {
             case CREATE_VAULT:
-                createVault(opts);
+                createVault(options);
                 break;
             case CREATE_FOLDER:
-                createFolder(opts);
-            case SHOW_USAGE:
-                showUsage();
+                createFolder(options);
                 break;
-            case DEBUG:
-                showDebugInfo();
+            case CREATE_ENTRY:
+                createEntry(options);
                 break;
-            default:
-                showUsage();
+            case SHOW_FOLDERS:
+                showFolders(options);
                 break;
         }
     }
 
-    /**
-     * Creates a new, empty vault.
-     * @param opts
-     */
-    protected void createVault(final CLIOptions opts) throws IOException {
-        final File vaultFile = new File(opts.getVaultPath());
+    protected void createVault(final CLIOptions options) throws VaultException, IOException {
+        final Credentials credentials = readCredentials(true);
+        final Vault vault = new Vault();
+        vault.lock(credentials);
+        saveVault(vault, options.getVaultPath());
+    }
 
-        if (vaultFile.exists()) {
-            System.out.println("ERROR: File " + vaultFile.getAbsolutePath() + " already exists");
+    protected void createFolder(final  CLIOptions options) throws VaultException, IOException {
+        final Credentials credentials = readCredentials(false);
+        final Vault vault = loadVault(options.getVaultPath(), credentials);
+
+        if (vault.getFolderNames().contains(options.getFolderName())) {
+            System.out.println("ERROR: Folder already exists");
         } else {
-            final Optional<Credentials> credentials = readCredentials();
-
-            if (credentials.isPresent()) {
-                final Vault vault = new Vault();
-                vault.lock(credentials.get());
-                new VaultStore().save(vault, vaultFile);
-            } else {
-                System.out.println("ERROR: Could not read credentials");
-            }
+            vault.createFolder(options.getFolderName());
+            vault.lock(credentials);
+            saveVault(vault, options.getVaultPath());
+            System.out.println("Folder saved");
         }
-        //final StringSelection ss = new StringSelection("valami");
-        //Toolkit.getDefaultToolkit().getSystemClipboard().setContents(ss, ss);
-    }
-    
-    protected void createFolder(final CLIOptions opts) throws IOException, ClassNotFoundException {
-    	final File vaultFile = new File(opts.getVaultPath());
-    	
-    	if (vaultFile.exists()) {
-    		
-    		final VaultStore store = new VaultStore();
-    		final Optional<Vault> loadedVault = store.load(vaultFile);
-    			
-    		if (loadedVault.isPresent() && opts.getFolderName() != null) {
-    			final Optional<Credentials> credentials = readCredentials();
-    			
-    			if (credentials.isPresent()) {
-    				final Vault vault = loadedVault.get();
-    				vault.unlock(credentials.get());
-                    vault.createFolder(opts.getFolderName());
-                    vault.lock(credentials.get());
-                    store.save(vault, vaultFile);
-    			}
-    				
-    		} else {
-                System.out.println("ERROR: Couldn't find selected folder");
-            }
-    	} else {
-    		System.out.println("ERROR: Vault file does not exist: " + vaultFile.getAbsolutePath());
-    	}
     }
 
-    protected void createEntry(final CLIOptions opts) throws Exception {
+    protected void createEntry(final CLIOptions options) throws VaultException, IOException {
+        final Credentials credentials = readCredentials(false);
+        final Vault vault = loadVault(options.getVaultPath(), credentials);
+        final Optional<Folder> maybeFolder = vault.getFolder(options.getFolderName());
 
-    }
-
-    protected Optional<Folder> loadFolder(final CLIOptions opts) throws IOException, ClassNotFoundException {
-        final File vaultFile = new File(opts.getVaultPath());
-
-        if (vaultFile.exists()) {
-            final VaultStore store = new VaultStore();
-            final Optional<Vault> loadedVault = store.load(vaultFile);
-
-            if (loadedVault.isPresent() && opts.getFolderName() != null) {
-                final Optional<Credentials> credentials = readCredentials();
-
-                if (credentials.isPresent()) {
-                    final Vault vault = loadedVault.get();
-                    vault.unlock(credentials.get());
-                    final Optional<Folder> folder = vault.getFolder(opts.getFolderName());
-
-                    return folder;
-                }
-            }
+        if (maybeFolder.isPresent()) {
+            final Folder folder = maybeFolder.get();
+            final VaultEntry entry = readEntryDetails();
+            folder.addEntry(entry);
+            vault.lock(credentials);
+            saveVault(vault, options.getVaultPath());
+        } else {
+            System.out.println("ERROR: Selected folder does not exist: " + options.getFolderName());
         }
-
-        return Optional.empty();
     }
 
-    protected Optional<Credentials> readCredentials() {
+    protected void showFolders(final CLIOptions options) throws VaultException {
+        final Credentials credentials = readCredentials(false);
+        final Vault vault = loadVault(options.getVaultPath(), credentials);
+
+        vault.getFolderNames().forEach(System.out::println);
+    }
+
+    protected void saveVault(final Vault vault, final String vaultPath) throws IOException {
+        final VaultStore store = new VaultStore();
+        store.save(vault, new File(vaultPath));
+    }
+
+    protected VaultEntry readEntryDetails() throws VaultException {
         final Console console = System.console();
 
         if (console == null) {
-            // TODO provide fallback method of entering credentials
-            return Optional.empty();
+            throw new VaultException();
         } else {
-            System.out.print("Enter vault password: ");
+            System.out.print("Username: ");
+            final String username = console.readLine();
+            System.out.print("Password: ");
             final String password1 = String.valueOf(console.readPassword());
-            System.out.print("Enter vault password again: ");
+            System.out.print("Password again: ");
             final String password2 = String.valueOf(console.readPassword());
+            System.out.print("Recovery info (optional): ");
+            final String recoveryInfo = console.readLine();
 
             if (password1.equals(password2)) {
-                System.out.print("Enter one-time password: ");
-                final char[] otp = System.console().readPassword();
-
-                final Credentials credentials = new Credentials(String.valueOf(password1), String.valueOf(otp));
-
-                return Optional.of(credentials);
+                final VaultEntry entry = new PasswordEntry(username, password1, recoveryInfo);
+                return entry;
             } else {
-                return Optional.empty();
+                throw new VaultException();
             }
+        }
+    }
+
+    protected Vault loadVault(final String path, final Credentials credentials) throws VaultException {
+        final File vaultFile = new File(path);
+
+        if (vaultFile.exists()) {
+            try {
+                final VaultStore store = new VaultStore();
+                final Optional<Vault> maybeVault = store.load(vaultFile);
+
+                if (maybeVault.isPresent()) {
+                    final Vault vault = maybeVault.get();
+                    vault.unlock(credentials);
+                    return vault;
+                } else {
+                    throw new VaultException();
+                }
+            } catch (final Exception e) {
+                throw new VaultException();
+            }
+        } else {
+            throw new VaultException();
+        }
+    }
+
+    protected Credentials readCredentials(final boolean confirmPassword) throws VaultException {
+        final Console console = System.console();
+
+        if (console == null) {
+            System.out.println("ERROR: Couldn't open system console");
+            throw new VaultException();
+        } else {
+            System.out.print("Enter password: ");
+            final String password1 = String.valueOf(console.readPassword());
+
+            if (confirmPassword) {
+                System.out.print("Confirm password: ");
+                final String password2 = String.valueOf(console.readPassword());
+
+                if (!password1.equals(password2)) {
+                    throw new VaultException();
+                }
+            }
+
+            System.out.print("Enter one-time password: ");
+            final String otp = String.valueOf(console.readPassword());
+
+            return new Credentials(password1, otp);
         }
     }
 

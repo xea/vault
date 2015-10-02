@@ -43,6 +43,9 @@ public class CLIOptions {
                 case "delete-entry":
                     action = VaultAction.CREATE_ENTRY;
                     break;
+                case "show-folders":
+                    action = VaultAction.SHOW_FOLDERS;
+                    break;
                 case "debug":
                     action = VaultAction.DEBUG;
                     break;

@@ -66,6 +66,7 @@ public class VaultEncryptor {
                 throw new RuntimeException("Encryptet object wasn't a segment");
             }
         } catch (final IllegalBlockSizeException | BadPaddingException e) {
+            e.printStackTrace();
             throw new EncryptionException();
         } catch (final Exception e) {
             throw new RuntimeException("Couldn't decrypt segment: " + e.getMessage());

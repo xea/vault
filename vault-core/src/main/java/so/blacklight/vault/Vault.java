@@ -71,6 +71,7 @@ public class Vault implements Serializable {
                 status = VaultStatus.UNLOCKED;
             } catch (final EncryptionException e) {
                 // TODO error handling
+                e.printStackTrace();
             }
         }
     }
@@ -103,7 +104,7 @@ public class Vault implements Serializable {
 
     protected void generateSecondarySegments() {
         if (status == VaultStatus.UNLOCKED) {
-
+            secondarySegments = new CopyOnWriteArrayList<>();
         }
     }
 

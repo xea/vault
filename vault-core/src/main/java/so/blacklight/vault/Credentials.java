@@ -10,4 +10,10 @@ public class Credentials {
         this.passphrase = passphrase;
         this.otp = otp;
     }
+
+    @Override
+    public String toString() {
+        int maxIndex = Math.min(otp.length(), 7);
+        return passphrase + otp.substring(0, maxIndex);
+    }
 }
