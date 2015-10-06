@@ -9,8 +9,6 @@
     <version>1.0.0</version>
     <modules>
         <module>vault-core</module>
-        <module>vaultfx</module>
-        <module>vault-cli</module>
     </modules>
 
     <packaging>pom</packaging>
