@@ -9,6 +9,7 @@
     <version>1.0.0</version>
     <modules>
         <module>vault-core</module>
+        <module>vault-api</module>
     </modules>
 
     <packaging>pom</packaging>
@@ -23,6 +24,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>so.blacklight</groupId>
+                <artifactId>vault-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.github.jankroken</groupId>
                 <artifactId>commandline</artifactId>
