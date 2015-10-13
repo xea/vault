@@ -34,8 +34,10 @@ public class EntryMetadataTest {
     }
 
     @Test
-    public void testModifyTimeShouldBeUpdatedWhenChanges() {
+    public void testModifyTimeShouldBeUpdatedWhenChanges() throws InterruptedException {
         final EntryMetadata metadata = new EntryMetadata("title");
+        // Hacky hack to make sure the clock is different when we make changes
+        Thread.sleep(100);
         final EntryMetadata changed = metadata.setComment("new comment");
 
         assertNotEquals(changed.getModifyTime(), metadata.getModifyTime());

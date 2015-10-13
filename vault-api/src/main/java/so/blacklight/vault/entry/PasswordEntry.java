@@ -7,7 +7,9 @@ import java.time.Instant;
  */
 public class PasswordEntry implements RecoverableEntry {
 
-    private final String id;
+	private static final long serialVersionUID = 188990085L;
+
+	private final String id;
 
     private final String password;
 

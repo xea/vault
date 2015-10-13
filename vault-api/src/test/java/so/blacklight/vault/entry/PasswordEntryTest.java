@@ -23,8 +23,9 @@ public class PasswordEntryTest {
     }
 
     @Test
-    public void testModifiedTimeShouldBeUpdatedWhenChanges() {
+    public void testModifiedTimeShouldBeUpdatedWhenChanges() throws InterruptedException {
         final PasswordEntry entry = new PasswordEntry("user", "password");
+        Thread.sleep(100);
         final PasswordEntry changes = entry.setPassword("my password");
         assertNotEquals(entry.getMetadata().getModifyTime(), changes.getMetadata().getModifyTime());
         assertTrue(entry.getMetadata().getModifyTime().isBefore(changes.getMetadata().getModifyTime()));

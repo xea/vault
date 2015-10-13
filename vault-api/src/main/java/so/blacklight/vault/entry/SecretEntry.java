@@ -5,7 +5,9 @@ import java.time.Instant;
 
 public class SecretEntry implements RecoverableEntry {
 
-    private final EntryMetadata metadata;
+	private static final long serialVersionUID = 84040782L;
+
+	private final EntryMetadata metadata;
     private final String recoveryInfo;
     private final SealedObject sealedSecret;
 
