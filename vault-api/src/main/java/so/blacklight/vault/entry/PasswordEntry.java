@@ -3,7 +3,7 @@ package so.blacklight.vault.entry;
 import java.time.Instant;
 
 /**
- * Holds a regular username/email-password pair.
+ * An entry holding a pair of a user ID and a password.
  */
 public class PasswordEntry implements RecoverableEntry {
 
@@ -33,7 +33,7 @@ public class PasswordEntry implements RecoverableEntry {
         this.id = id;
         this.password = password;
         this.recoveryInfo = recoveryInfo;
-        this.metadata = new EntryMetadata(title, comment, expirationTime, Instant.now());
+        this.metadata = new EntryMetadata(title, comment, expirationTime);
     }
 
     protected PasswordEntry(final PasswordEntry copy, final EntryMetadata metadata) {

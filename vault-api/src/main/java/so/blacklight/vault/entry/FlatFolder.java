@@ -42,7 +42,7 @@ public class FlatFolder implements Folder {
 
     @Override
     public final FlatFolder updateEntries(final Collection<Entry> newEntries) {
-        if (newEntries == null) {
+        if (newEntries == null || newEntries.equals(entries)) {
             return this;
         } else {
             return new FlatFolder(newEntries, metadata);

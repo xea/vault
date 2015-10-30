@@ -30,19 +30,39 @@ public class EntryMetadata implements Serializable {
 
     private final String title;
 
+    /**
+     * Create a new metadata object with a title only. Every other fields are set to reasonable defaults.
+     * Note: this entry will never expire.
+     *
+     * @param title displayable title of this entry
+     */
     public EntryMetadata(final String title) {
         this(title, null);
     }
 
+    /**
+     * Create a new metadata object with a title and comment but without an expiration date so this
+     * entry will never expire.
+     *
+     * @param title displayable title of this entry
+     * @param comment displayable comment for this entry
+     */
     public EntryMetadata(final String title, final String comment) {
         this(title, comment, DEFAULT_EXPIRATION_TIME);
     }
 
+    /**
+     * Create a new metadata object with the specified title, comment and expiration time.
+     *
+     * @param title displayable title of this entry
+     * @param comment displayable comment for this entry
+     * @param expirationTime point in time when this entry is considered expired
+     */
     public EntryMetadata(final String title, final String comment, final Instant expirationTime) {
         this(title, comment, expirationTime, Instant.now());
     }
 
-    public EntryMetadata(final String title, final String comment, final Instant expirationTime, final Instant modifyTime) {
+    private EntryMetadata(final String title, final String comment, final Instant expirationTime, final Instant modifyTime) {
         createTime = Instant.now();
         this.modifyTime = modifyTime;
         this.comment = comment;

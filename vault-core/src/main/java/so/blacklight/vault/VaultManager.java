@@ -1,4 +1,5 @@
 package so.blacklight.vault;
 
-public class VaultTest {
+public class VaultManager {
+
 }

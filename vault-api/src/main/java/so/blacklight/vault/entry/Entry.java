@@ -8,6 +8,11 @@ import java.io.Serializable;
  */
 public interface Entry extends Serializable {
 
+    /**
+     * Provide metadata about the current entry
+     *
+     * @return metadata
+     */
     EntryMetadata getMetadata();
 
 }

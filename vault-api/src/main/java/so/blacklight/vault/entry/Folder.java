@@ -27,4 +27,6 @@ public interface Folder extends Entry {
      */
     Folder updateEntries(Collection<Entry> entries);
 
+    Folder setName(String name);
+
 }

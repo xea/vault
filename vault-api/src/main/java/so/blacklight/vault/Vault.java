@@ -1,16 +1,9 @@
 package so.blacklight.vault;
 
 import java.io.Serializable;
+import java.util.Optional;
 
-public class Vault implements Serializable {
-	
-	private static final long serialVersionUID = 3159058613L;
+public interface Vault extends Serializable {
 
-	final Segment primarySegment;
-	
-	public Vault() {
-		primarySegment = new Segment();
-	}
-	
-	
+
 }
