@@ -17,6 +17,7 @@
 
     <properties>
         <commandline.version>1.7.0</commandline.version>
+        <functionaljava.version>4.4</functionaljava.version>
         <junit.version>4.12</junit.version>
         <scrypt.version>1.4.0</scrypt.version>
         <yubikey-client.version>3.0.1</yubikey-client.version>
@@ -50,6 +51,11 @@
                 <groupId>com.lambdaworks</groupId>
                 <artifactId>scrypt</artifactId>
                 <version>${scrypt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.functionaljava</groupId>
+                <artifactId>functionaljava-java8</artifactId>
+                <version>${functionaljava.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

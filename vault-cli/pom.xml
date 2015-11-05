@@ -17,6 +17,11 @@
             <artifactId>vault-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.jankroken</groupId>
+            <artifactId>commandline</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -29,7 +34,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>so.blacklight.vault.cli.VaultCLI</mainClass>
+                            <mainClass>so.blacklight.vaultold.cli.VaultCLI</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
