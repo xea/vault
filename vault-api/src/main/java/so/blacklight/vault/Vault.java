@@ -1,24 +1,21 @@
 package so.blacklight.vault;
 
-import so.blacklight.crypto.Decryptor;
-import so.blacklight.crypto.Encryptor;
-
 import java.io.Serializable;
-import java.util.List;
+import java.util.UUID;
 
-public interface Vault extends Entry, Serializable {
+public class Vault implements Serializable {
 
-    boolean addEntry(SecretEntry secretEntry);
+    public static final long serialVersionUID = -66684432674L;
 
-    boolean addEntry(Entry entry, Encryptor encryptor);
+    private UUID uuid;
 
-    boolean removeEntry(String alias);
+    public Vault() {
+        reseed();
+    }
 
-    boolean removeEntry(SecretEntry secretEntry);
+    public void reseed() {
+        uuid = UUID.randomUUID();
+    }
 
-    List<SecretEntry> getEntries();
 
-    Entry getEntry(String alias);
-
-    Entry getEntry(String alias, Decryptor decryptor);
 }

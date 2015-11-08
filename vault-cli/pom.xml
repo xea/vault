@@ -34,7 +34,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>so.blacklight.vaultold.cli.VaultCLI</mainClass>
+                            <mainClass>so.blacklight.vault.VaultCLI</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
