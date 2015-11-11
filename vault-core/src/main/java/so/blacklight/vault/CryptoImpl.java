@@ -20,6 +20,7 @@ public class CryptoImpl<T extends Serializable> implements Crypto<T> {
 
     private final static String DEFAULT_ERROR = "Error :(";
 
+    private final static String AES_CIPHER_NAME = "AES/CBC/PKCS5Padding";
     @Override
     public Either<String, byte[]> encrypt(T secret, EncryptionParameters params) {
         return encrypt(secret, Arrays.<EncryptionParameters>asList(params));
@@ -69,7 +70,7 @@ public class CryptoImpl<T extends Serializable> implements Crypto<T> {
     }
 
     private Cipher getAESCipher(final int mode, final EncryptionParameters params) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException {
-        final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        final Cipher cipher = Cipher.getInstance(AES_CIPHER_NAME);
         final IvParameterSpec ivSpec = new IvParameterSpec(params.getIv());
         cipher.init(mode, params.getKey(), ivSpec);
 
@@ -153,7 +154,8 @@ public class CryptoImpl<T extends Serializable> implements Crypto<T> {
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 
-            final byte[] buffer = new byte[64 * 1024];
+            // Let's try reading the encrypted data in 64k chunks
+            final byte[] buffer = new byte[65536];
             int length;
 
             while ((length = cis.read(buffer)) >= 0) {
