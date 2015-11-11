@@ -17,6 +17,10 @@
             <artifactId>functionaljava-java8</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.lambdaworks</groupId>
+            <artifactId>scrypt</artifactId>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
