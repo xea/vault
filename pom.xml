@@ -9,6 +9,7 @@
     <version>1.0.0</version>
     <modules>
         <module>vault-api</module>
+        <module>vault-core</module>
     </modules>
 
     <packaging>pom</packaging>

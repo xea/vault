@@ -1,5 +1,10 @@
 package so.blacklight.vault;
 
-public interface Credentials {
+import java.util.List;
+
+public class Credentials {
+
+    private List<Credential> credentials;
+
 
 }
