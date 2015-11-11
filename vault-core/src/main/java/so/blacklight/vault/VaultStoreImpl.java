@@ -52,7 +52,8 @@ public class VaultStoreImpl implements VaultStore {
                 final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 final DataOutputStream dos = new DataOutputStream(baos);
 
-                final Layout layout = new Layout(credentials.getCredentials().size(), 2, 1);
+                final int n = credentials.getCredentials().size();
+                final Layout layout = new Layout(n, n - 1, n - 2);
                 dos.write(layout.toByteArray());
 
                 for (final EncryptionParameters param : params) {

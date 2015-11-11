@@ -10,6 +10,7 @@
     <modules>
         <module>vault-api</module>
         <module>vault-core</module>
+        <module>vault-cli</module>
     </modules>
 
     <packaging>pom</packaging>
