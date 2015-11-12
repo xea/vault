@@ -6,6 +6,9 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Defines basic persistence operations for vaults.
+ */
 public interface VaultStore {
 
     void save(Vault vault, Credentials credentials, File vaultFile);

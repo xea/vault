@@ -3,6 +3,8 @@ package so.blacklight.vault;
 /**
  * A credential is a piece of information that proves a person's identity
  * and authority to access secure data.
+ *
+ * Note: implementations of this interface are expected to be immutable.
  */
 public interface Credential {
 

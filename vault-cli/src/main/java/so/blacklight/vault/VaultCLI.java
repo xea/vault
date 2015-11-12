@@ -2,6 +2,7 @@ package so.blacklight.vault;
 
 import com.github.jankroken.commandline.CommandLineParser;
 import com.github.jankroken.commandline.OptionStyle;
+import fj.data.Either;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -70,9 +71,18 @@ public class VaultCLI {
 
         if (vaultFile.exists() && vaultFile.canRead()) {
             final Credentials credentials = buildCredentials(options);
-            final VaultStore store = new VaultStore();
-            final Optional<Vault> vault = store.load(credentials, vaultFile);
+            final VaultStore store = new VaultStoreImpl();
 
+            final Either<String, Vault> maybeVault = store.load(credentials, vaultFile);
+
+            if (maybeVault.isRight()) {
+                final Vault vault = maybeVault.right().value();
+
+                // TODO list entries
+            } else {
+                final String message = "ERROR: Could not load vault: ";
+                System.out.println(message + maybeVault.left().value());
+            }
         } else {
             final String message = "ERROR: Vault file doesn't exist or isn't readable: ";
             System.out.println(message + vaultFile.getAbsolutePath());
@@ -138,7 +148,7 @@ public class VaultCLI {
         final Credentials credentials = new Credentials();
         credentials.add(new Password(password));
         credentials.add(new Password(otp));
-        credentials.add(new PrivateKey(staticKey));
+//        credentials.add(new PrivateKey(staticKey));
 
         return credentials;
     }

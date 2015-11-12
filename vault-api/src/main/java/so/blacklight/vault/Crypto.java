@@ -11,7 +11,7 @@ import java.util.List;
 public interface Crypto<T extends Serializable> {
 
     /**
-     * Encrypts an arbitrary serializable object in a single pass as specified by the passed <code>params</code> argument.
+     * Encrypt an arbitrary serializable object in a single pass as specified by the passed <code>params</code> argument.
      *
      * @param secret object to encrypt
      * @param params encryption parameters
@@ -21,7 +21,7 @@ public interface Crypto<T extends Serializable> {
     Either<String, byte[]> encrypt(T secret, EncryptionParameters params);
 
     /**
-     * Encrypts an arbitrary serializable object in multiple passes as specified by the passed <code>params</code> argument.
+     * Encrypt an arbitrary serializable object in multiple passes as specified by the passed <code>params</code> argument.
      *
      * Note: for a subsequent decryption, one must pass <code>params</code> in a reverse order.
      *

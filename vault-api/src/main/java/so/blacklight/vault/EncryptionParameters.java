@@ -4,15 +4,22 @@ import com.lambdaworks.crypto.SCrypt;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
+/**
+ * Encapsulates the information necessary to encrypt/decrypt an object.
+ *
+ * Note: depending on the credential type, salt may not be used during key derivation
+ */
 public class EncryptionParameters {
 
     private static final String CRYPTO_ALG = "AES";
+    private static final String RANDOM_ALG = "SHA1PRNG";
+    private static final int IV_LENGTH = 16;
+    private static final int SALT_LENGTH = 16;
 
     private byte[] iv;
 
@@ -20,37 +27,85 @@ public class EncryptionParameters {
 
     private SecretKey key;
 
+    /**
+     * Initialise a new parameter object with the given credentials and random
+     * IV and random salt.
+     *
+     * @param credentials credentials
+     */
     public EncryptionParameters(final Credential credentials) {
-        salt = generateRandom(16);
-        iv = generateRandom(16);
+        iv = generateRandom(IV_LENGTH);
+        salt = generateRandom(SALT_LENGTH);
         key = generateKey(credentials, salt);
 
     }
 
+    /**
+     * Initialise a new parameter object with the given credentials, IV and salt.
+     *
+     * @param credentials credentials
+     * @param iv initialising vector
+     * @param salt password salt
+     */
     public EncryptionParameters(final Credential credentials, final byte[] iv, final byte[] salt) {
         this.iv = iv;
         this.salt = salt;
         this.key = generateKey(credentials, salt);
     }
 
+    /**
+     * Initialise a new parameter object with the given secret key bytes. This
+     * constructor should be typically used when loading a raw encryption key from
+     * a file.
+     *
+     * An additional IV and salt will be generated randomly.
+     *
+     * @param key secret key bytes
+     */
     public EncryptionParameters(final byte[] key) {
         this.key = new SecretKeySpec(key, CRYPTO_ALG);
-        this.salt = generateRandom(16);
-        this.iv = generateRandom(16);
+        this.salt = generateRandom(SALT_LENGTH);
+        this.iv = generateRandom(IV_LENGTH);
     }
 
+    /**
+     * Initialise a new parameter object with the given secret key bytes,
+     * initialisation vector and salt. This constructor should typically be used
+     * during decryption with a raw decryption key.
+     *
+     * @param key secret key bytes
+     * @param iv initialisation vector bytes
+     * @param salt salt bytes
+     */
     public EncryptionParameters(final byte[] key, final byte[] iv, final byte[] salt) {
         this.key = new SecretKeySpec(key, CRYPTO_ALG);
         this.salt = salt;
         this.iv = iv;
     }
 
+    /**
+     * Initialise a new parameter  object with the given password characters.
+     * Additional initialisation vector and salt will be generated randomly.
+     * This constructor should be typically used during encryption, with a user-supplied
+     * password.
+     *
+     * @param password password characters
+     */
     public EncryptionParameters(final char[] password) {
-        salt = generateRandom(16);
-        iv = generateRandom(16);
+        iv = generateRandom(IV_LENGTH);
+        salt = generateRandom(SALT_LENGTH);
         key = new SecretKeySpec(deriveKey(password, salt), CRYPTO_ALG);
     }
 
+    /**
+     * Initialise a new parameter object with the given password characters, initialisation
+     * vector and salt. This constructor should be typically used during decryption, with
+     * a user-supplied password.
+     *
+     * @param password password characters
+     * @param iv initialisation vector bytes
+     * @param salt salt bytes
+     */
     public EncryptionParameters(final char[] password, final byte[] iv, final byte[] salt) {
         this.iv = iv;
         this.salt = salt;
@@ -86,7 +141,6 @@ public class EncryptionParameters {
 
             return derived;
         } catch (GeneralSecurityException e) {
-            // TODO Throw shit
             //throw new IllegalStateException("JVM doesn\'t support SHA1PRNG or HMAC_SHA256?");
         }
 
@@ -104,7 +158,7 @@ public class EncryptionParameters {
         SecureRandom random;
 
         try {
-            random = SecureRandom.getInstance("SHA1PRNG");
+            random = SecureRandom.getInstance(RANDOM_ALG);
         } catch (NoSuchAlgorithmException e) {
             random = new SecureRandom();
         }
@@ -113,14 +167,14 @@ public class EncryptionParameters {
     }
 
     private SecretKey generateKey(Credential credentials, byte[] salt) {
-        final SecretKey tkey;
+        final SecretKey secretKey;
 
         if (credentials.isUserInput()) {
-            tkey = new SecretKeySpec(deriveKey(credentials.getBytes(), salt), CRYPTO_ALG);
+            secretKey = new SecretKeySpec(deriveKey(credentials.getBytes(), salt), CRYPTO_ALG);
         } else {
-            tkey = new SecretKeySpec(credentials.getBytes(), CRYPTO_ALG);
+            secretKey = new SecretKeySpec(credentials.getBytes(), CRYPTO_ALG);
         }
 
-        return tkey;
+        return secretKey;
     }
 }
