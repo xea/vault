@@ -18,8 +18,8 @@ public class EncryptionParameters {
 
     private static final String CRYPTO_ALG = "AES";
     private static final String RANDOM_ALG = "SHA1PRNG";
-    private static final int IV_LENGTH = 16;
-    private static final int SALT_LENGTH = 16;
+    public static final int IV_LENGTH = 16;
+    public static final int SALT_LENGTH = 16;
 
     private byte[] iv;
 
@@ -110,6 +110,12 @@ public class EncryptionParameters {
         this.iv = iv;
         this.salt = salt;
         key = new SecretKeySpec(deriveKey(password, salt), CRYPTO_ALG);
+    }
+
+    public EncryptionParameters(final SecretKey secretKey) {
+        key = secretKey;
+        iv = generateRandom(IV_LENGTH);
+        salt = generateRandom(SALT_LENGTH);
     }
 
     public byte[] getIv() {

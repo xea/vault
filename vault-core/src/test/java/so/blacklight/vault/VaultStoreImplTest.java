@@ -34,6 +34,7 @@ public class VaultStoreImplTest {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
         final Credentials credentials = new Credentials();
         credentials.add(new Password("secretPassword".toCharArray()));
+        credentials.add(new Password("otherPassword".toCharArray()));
         credentials.add(new PrivateKey("0123456789ABCDEF".getBytes()));
 
         final VaultStore store = new VaultStoreImpl();
@@ -47,4 +48,5 @@ public class VaultStoreImplTest {
         assertTrue(loaded.isRight());
         assertNotNull(loaded.right().value());
     }
+
 }

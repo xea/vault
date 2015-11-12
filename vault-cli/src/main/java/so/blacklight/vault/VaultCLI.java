@@ -148,7 +148,7 @@ public class VaultCLI {
         final Credentials credentials = new Credentials();
         credentials.add(new Password(password));
         credentials.add(new Password(otp));
-//        credentials.add(new PrivateKey(staticKey));
+        //credentials.add(new PrivateKey(new String(staticKey).getBytes()));
 
         return credentials;
     }

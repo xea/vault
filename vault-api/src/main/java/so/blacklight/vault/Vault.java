@@ -1,6 +1,7 @@
 package so.blacklight.vault;
 
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.UUID;
 
 public class Vault implements Serializable {
@@ -9,8 +10,15 @@ public class Vault implements Serializable {
 
     private UUID uuid;
 
+    private VaultSettings settings;
+
     public Vault() {
         uuid = UUID.randomUUID();
+        settings = new VaultSettings();
+    }
+
+    public Vault(final VaultSettings settings) {
+
     }
 
     public boolean isWritable() {
@@ -19,5 +27,13 @@ public class Vault implements Serializable {
 
     public UUID getUuid() {
         return uuid;
+    }
+
+    public Optional<Vault> getRecoverySegment() {
+        return Optional.of(this);
+    }
+
+    public Optional<Vault> getDegradedSegment() {
+        return Optional.empty();
     }
 }

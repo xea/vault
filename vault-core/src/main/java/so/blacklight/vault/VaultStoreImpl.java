@@ -7,8 +7,8 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -45,35 +45,72 @@ public class VaultStoreImpl implements VaultStore {
             final Stream<Credential> stream = credentials.getCredentials().stream();
             final List<EncryptionParameters> params = stream.map(c -> new EncryptionParameters(c)).collect(Collectors.toList());
 
-            final Crypto<Vault> crypto = new CryptoImpl<>();
-            final Either<String, byte[]> encrypt = crypto.encrypt(vault, params);
+            final Either<String, byte[]> encrypt = encryptVault(vault, params);
+
+            final Optional<Vault> maybeRecovery = vault.getRecoverySegment();
+            final Optional<Vault> maybeDegraded = vault.getDegradedSegment();
 
             if (encrypt.isRight()) {
-                final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                final DataOutputStream dos = new DataOutputStream(baos);
-
                 final int n = credentials.getCredentials().size();
-                final Layout layout = new Layout(n, n - 1, n - 2);
-                dos.write(layout.toByteArray());
+                final int r = maybeRecovery.isPresent() ? n - 1 : 0;
+                final int d = maybeDegraded.isPresent() ? n - 2 : 0;
 
-                for (final EncryptionParameters param : params) {
-                    dos.write(param.getIv());
-                    dos.write(param.getSalt());
-                }
-
-                dos.writeInt(encrypt.right().value().length);
-                dos.write(encrypt.right().value());
-
-                outputStream.write(baos.toByteArray());
-
-                dos.close();
-                baos.close();
+                final Layout layout = new Layout(n, r, d);
+                outputStream.write(layout.toByteArray());
+                outputStream.write(encrypt.right().value());
             }
 
+            if (vault.getRecoverySegment().isPresent()) {
+                final Vault recovery = vault.getRecoverySegment().get();
+                final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
+                for (final EncryptionParameters param : params) {
+                    List<EncryptionParameters> localParams = params.stream().filter(fp ->
+                            fp.getKey() != param.getKey()).map(mp ->
+                                new EncryptionParameters(mp.getKey()))
+                            .collect(Collectors.toList());
+
+                    final Either<String, byte[]> maybeEncryptedRecovery = encryptVault(recovery, localParams);
+
+                    if (maybeEncryptedRecovery.isRight()) {
+                        baos.write(maybeEncryptedRecovery.right().value());
+                    }
+                }
+
+                outputStream.write(baos.toByteArray());
+            }
+
+            if (vault.getDegradedSegment().isPresent()) {
+
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private Either<String, byte[]> encryptVault(final Vault vault, final List<EncryptionParameters> params) throws IOException {
+        final Crypto<Vault> crypto = new CryptoImpl<>();
+        final Either<String, byte[]> encrypt = crypto.encrypt(vault, params);
+
+        if (encrypt.isRight()) {
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            final DataOutputStream dos = new DataOutputStream(baos);
+
+            for (final EncryptionParameters param : params) {
+                dos.write(param.getIv());
+                dos.write(param.getSalt());
+            }
+
+            final byte[] encrypted = encrypt.right().value();
+            dos.writeInt(encrypted.length);
+            dos.write(encrypted);
+
+            dos.close();
+
+            return Either.right(baos.toByteArray());
+        }
+
+        return encrypt;
     }
 
     @Override
@@ -123,6 +160,18 @@ public class VaultStoreImpl implements VaultStore {
                     final Either<String, Vault> decrypted = crypto.decrypt(encryptedBlock, params);
 
                     return decrypted;
+                } else if (credentialsCount == layout.getRecoveryLayers()) {
+                    int ivCount = EncryptionParameters.IV_LENGTH * layout.getPrimaryLayers();
+                    int saltCount = EncryptionParameters.SALT_LENGTH * layout.getPrimaryLayers();
+                    // Skip primary IV/Salt block
+                    inputStream.skip(ivCount + saltCount);
+                    final DataInputStream dis = new DataInputStream(inputStream);
+                    final int blockLength = dis.readInt();
+                    dis.close();
+                    // Skip primary block
+                    inputStream.skip(blockLength);
+
+                    // Start processing recovery blocks
                 }
 
                 return Either.left("WTF. No, dude, seriously. WTF.");
@@ -134,10 +183,9 @@ public class VaultStoreImpl implements VaultStore {
         }
     }
 
-
     private Function<Credential, EncryptionParameters> readHeaders(final InputStream is) {
-        final byte[] iv = new byte[16];
-        final byte[] salt = new byte[16];
+        final byte[] iv = new byte[EncryptionParameters.IV_LENGTH];
+        final byte[] salt = new byte[EncryptionParameters.SALT_LENGTH];
 
         try {
             is.read(iv);
