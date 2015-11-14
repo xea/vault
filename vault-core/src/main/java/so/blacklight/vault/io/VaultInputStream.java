@@ -1,5 +1,6 @@
 package so.blacklight.vault.io;
 
+import fj.data.List;
 import so.blacklight.vault.EncryptionParameters;
 import so.blacklight.vault.VaultStoreImpl;
 import so.blacklight.vault.store.Layout;
@@ -9,9 +10,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 
-public class VaultInputStream extends DataInputStream {
+import static fj.data.List.list;
 
-    private boolean initialised = false;
+public class VaultInputStream extends DataInputStream {
 
     private Layout layout;
 
@@ -38,42 +39,55 @@ public class VaultInputStream extends DataInputStream {
     }
 
     public VaultRecord nextRecord() throws IOException {
-        final int plc = layout.getPrimaryLayers();
-        final int rlc = plc + layout.getRecoveryLayers();
-        final int dlc = rlc + layout.getDegradedLayers();
+        final int c = getHeaderCount();
 
-        final int ivBytesCount;
-        final int saltBytesCount;
-        if (idx < plc) {
-            ivBytesCount = EncryptionParameters.IV_LENGTH * layout.getPrimaryLayers();
-            saltBytesCount = EncryptionParameters.SALT_LENGTH * layout.getPrimaryLayers();
-        } else if (idx < rlc) {
-            ivBytesCount = EncryptionParameters.IV_LENGTH * layout.getRecoveryLayers();
-            saltBytesCount = EncryptionParameters.SALT_LENGTH * layout.getRecoveryLayers();
-        } else if (idx < dlc) {
-            ivBytesCount = EncryptionParameters.IV_LENGTH * layout.getDegradedLayers();
-            saltBytesCount = EncryptionParameters.SALT_LENGTH * layout.getDegradedLayers();
-        } else {
-            throw new IOException("Invalid Vault format");
+        final byte[][] ivs = new byte[c][EncryptionParameters.IV_LENGTH];
+        final byte[][] salts = new byte[c][EncryptionParameters.SALT_LENGTH];
+
+        for (int i = 0; i < c; i++) {
+            in.read(ivs[i]);
+            in.read(salts[i]);
         }
 
-        final int length = readInt();
-        final byte[] ivBuffer = new byte[ivBytesCount];
-        final byte[] saltBuffer = new byte[saltBytesCount];
-        final byte[] recordBuffer = new byte[length];
+        final int blockLength = readInt();
+        final byte[] block = new byte[blockLength];
 
-        read(recordBuffer);
+        read(block);
 
-        final VaultRecord record = new VaultRecord(ivBuffer, saltBuffer, recordBuffer);
+        final VaultRecord record = new VaultRecord(ivs, salts, block);
 
+        idx += 1;
         return record;
     }
 
-    public boolean skip() {
-        return false;
+    private int getHeaderCount() {
+        final int plc = layout.getPrimaryLayers();
+        final int rlc = layout.getRecoveryLayers();
+        final int dlc = layout.getDegradedLayers();
+
+        if (idx == 0) {
+            return plc;
+        } else if (rlc > 0 && idx < plc + rlc) {
+            return plc - 1;
+        } else if (dlc > 0 && idx >= (plc + rlc) && idx < (plc + rlc + dlc)) {
+            return plc - 2;
+        }
+
+        return 0;
     }
 
-    public int skip(int n) {
+    public boolean skip() throws IOException {
+        return skip(1) > 0;
+    }
+
+    public int skip(int n) throws IOException {
+        for (int i = 0; i < n; i++) {
+            nextRecord();
+        }
         return 0;
+    }
+
+    public List<VaultRecord> readAll() {
+        return list();
     }
 }

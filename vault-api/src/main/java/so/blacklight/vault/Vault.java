@@ -36,4 +36,5 @@ public class Vault implements Serializable {
     public Optional<Vault> getDegradedSegment() {
         return Optional.empty();
     }
+
 }

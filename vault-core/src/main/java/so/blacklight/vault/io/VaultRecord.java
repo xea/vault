@@ -1,18 +1,28 @@
 package so.blacklight.vault.io;
 
-import java.io.InputStream;
-
 public class VaultRecord {
 
-    private byte[] ivBytes;
+    private final byte[][] ivs;
 
-    private byte[] saltBytes;
+    private final byte[][] salts;
 
-    private byte[] blockBytes;
+    private final byte[] block;
 
-    public VaultRecord(byte[] ivBuffer, byte[] saltBuffer, byte[] recordBuffer) {
-        ivBytes = ivBuffer;
-        saltBytes = saltBuffer;
-        blockBytes = recordBuffer;
+    public VaultRecord(byte[][] ivs, byte[][] salts, byte[] block) {
+        this.ivs = ivs;
+        this.salts = salts;
+        this.block = block;
+    }
+
+    public byte[][] getIvs() {
+        return ivs;
+    }
+
+    public byte[][] getSalts() {
+        return salts;
+    }
+
+    public byte[] getBlock() {
+        return block;
     }
 }
