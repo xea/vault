@@ -20,6 +20,10 @@ public class Options {
 
     private Optional<String> alias = Optional.empty();
 
+    private boolean generateRecovery = false;
+
+    private boolean generateDegraded = false;
+
     @Option
     @ShortSwitch("h")
     @LongSwitch("help")
@@ -46,6 +50,22 @@ public class Options {
         if (action == Action.DEFAULT_ACTION) {
             action = Action.CREATE_VAULT;
         }
+    }
+
+    @Option
+    @ShortSwitch("r")
+    @LongSwitch("recovery")
+    @Toggle(false)
+    public void requestGenerateRecovery(boolean value) {
+        this.generateRecovery = value;
+    }
+
+    @Option
+    @ShortSwitch("d")
+    @LongSwitch("degraded")
+    @Toggle(false)
+    public void requestGenerateDegraded(boolean value) {
+        this.generateDegraded = value;
     }
 
     public Action getAction() {
@@ -110,6 +130,14 @@ public class Options {
         }
 
         return valid;
+    }
+
+    public boolean isGenerateRecovery() {
+        return generateRecovery;
+    }
+
+    public boolean isGenerateDegraded() {
+        return generateDegraded;
     }
 
     /**

@@ -104,7 +104,8 @@ public class VaultCLI {
             System.out.println("ERROR: Vault file already exists: " + vaultFile.getAbsolutePath());
         } else {
             final Credentials credentials = buildCredentials(options);
-            final Vault vault = new Vault();
+            final VaultSettings settings = new VaultSettings(options.isGenerateRecovery(), options.isGenerateDegraded());
+            final Vault vault = new Vault(settings);
             final VaultStore vaultStore = new VaultStoreImpl();
 
             vaultStore.save(vault, credentials, vaultFile);

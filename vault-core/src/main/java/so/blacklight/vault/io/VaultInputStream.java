@@ -31,33 +31,37 @@ public class VaultInputStream extends DataInputStream {
         read(magicBytes);
 
         if (!Arrays.equals(magicBytes, VaultStoreImpl.MAGIC_BYTES)) {
-            throw new IOException("Stream does not contain a Vault");
+            throw new IOException("Stream is not a valid stream");
         }
 
         layout = new Layout(in);
         idx = 0;
     }
 
-    public VaultRecord nextRecord() throws IOException {
+    public VaultRecord readRecord() throws IOException {
         final int c = getHeaderCount();
 
-        final byte[][] ivs = new byte[c][EncryptionParameters.IV_LENGTH];
-        final byte[][] salts = new byte[c][EncryptionParameters.SALT_LENGTH];
+        if (c > 0) {
 
-        for (int i = 0; i < c; i++) {
-            in.read(ivs[i]);
-            in.read(salts[i]);
+            final byte[][] ivs = new byte[c][EncryptionParameters.IV_LENGTH];
+            final byte[][] salts = new byte[c][EncryptionParameters.SALT_LENGTH];
+
+            for (int i = 0; i < c; i++) {
+                in.read(ivs[i]);
+                in.read(salts[i]);
+            }
+
+            final int blockLength = readInt();
+            final byte[] block = new byte[blockLength];
+
+            read(block);
+
+            final VaultRecord record = new VaultRecord(ivs, salts, block);
+            idx += 1;
+            return record;
+        } else {
+            throw new IOException("Attempt to read after end of stream");
         }
-
-        final int blockLength = readInt();
-        final byte[] block = new byte[blockLength];
-
-        read(block);
-
-        final VaultRecord record = new VaultRecord(ivs, salts, block);
-
-        idx += 1;
-        return record;
     }
 
     private int getHeaderCount() {
@@ -82,12 +86,27 @@ public class VaultInputStream extends DataInputStream {
 
     public int skip(int n) throws IOException {
         for (int i = 0; i < n; i++) {
-            nextRecord();
+            readRecord();
         }
         return 0;
     }
 
     public List<VaultRecord> readAll() {
-        return list();
+        // TODO improve this
+        List<VaultRecord> records = list();
+        try {
+            int i = 255;
+            while (i-- > 0) {
+                final VaultRecord record = readRecord();
+                records = records.cons(record);
+            }
+        } catch (final Exception e) {
+        }
+
+        return records;
+    }
+
+    public Layout getLayout() {
+        return layout;
     }
 }

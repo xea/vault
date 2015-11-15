@@ -1,5 +1,8 @@
 package so.blacklight.vault.store;
 
+import so.blacklight.vault.Credentials;
+import so.blacklight.vault.Vault;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -32,6 +35,12 @@ public class Layout {
         this.primaryLayers = sanitize(primaryLayers);
         this.recoveryLayers = sanitize(recoveryLayers);
         this.degradedLayers = sanitize(degradedLayers);
+    }
+
+    public Layout(final Vault vault, final Credentials credentials) {
+        primaryLayers = credentials.getCredentials().size();
+        recoveryLayers = vault.getRecoverySegment().isPresent() ? primaryLayers - 1 : 0;
+        degradedLayers = vault.getDegradedSegment().isPresent() ? primaryLayers - 2 : 0;
     }
 
     public int getPrimaryLayers() {

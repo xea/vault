@@ -3,10 +3,7 @@ package so.blacklight.vault.io;
 import so.blacklight.vault.VaultStoreImpl;
 import so.blacklight.vault.store.Layout;
 
-import java.io.DataOutputStream;
-import java.io.FilterOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 
 public class VaultOutputStream extends DataOutputStream {
 

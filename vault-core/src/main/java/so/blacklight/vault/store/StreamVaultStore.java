@@ -2,9 +2,7 @@ package so.blacklight.vault.store;
 
 import fj.data.Either;
 import fj.data.List;
-import so.blacklight.vault.Credentials;
-import so.blacklight.vault.Vault;
-import so.blacklight.vault.VaultStore;
+import so.blacklight.vault.*;
 import so.blacklight.vault.io.VaultInputStream;
 import so.blacklight.vault.io.VaultOutputStream;
 import so.blacklight.vault.io.VaultRecord;
@@ -36,9 +34,10 @@ public class StreamVaultStore implements VaultStore {
             final ByteArrayOutputStream safetyBuffer = new ByteArrayOutputStream();
             final VaultOutputStream vos = new VaultOutputStream(safetyBuffer);
             final List<VaultRecord> records = generateRecords(vault, credentials);
+            final Layout layout = new Layout(vault, credentials);
 
             vos.writeMagicBytes();
-            vos.writeLayout(new Layout(1,2,3));
+            vos.writeLayout(layout);
             records.forEach(record -> writeBlock(vos, record));
 
             vos.close();
@@ -57,6 +56,9 @@ public class StreamVaultStore implements VaultStore {
     }
 
     private List<VaultRecord> generateRecords(Vault vault, Credentials credentials) {
+        final Crypto<Vault> crypto = new CryptoImpl<>();
+
+
         return null;
     }
 
