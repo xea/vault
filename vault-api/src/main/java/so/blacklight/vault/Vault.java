@@ -32,10 +32,18 @@ public class Vault implements Serializable {
     }
 
     public Optional<Vault> getRecoverySegment() {
-        return Optional.of(this);
+        if (settings.isGenerateRecovery()) {
+            return Optional.of(new Vault());
+        } else {
+            return Optional.empty();
+        }
     }
 
     public Optional<Vault> getDegradedSegment() {
-        return Optional.empty();
+        if (settings.isGenerateDegraded()) {
+            return Optional.of(new Vault());
+        } else {
+            return Optional.empty();
+        }
     }
 }

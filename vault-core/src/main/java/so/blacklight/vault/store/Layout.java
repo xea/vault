@@ -55,6 +55,27 @@ public class Layout {
         return degradedLayers;
     }
 
+    public int getLayers(final int idx) {
+        final int layers;
+
+        switch (idx) {
+            case 0:
+                layers = primaryLayers;
+                break;
+            case 1:
+                layers = recoveryLayers;
+                break;
+            case 2:
+                layers = degradedLayers;
+                break;
+            default:
+                layers = 0;
+                break;
+        }
+
+        return layers;
+    }
+
     public byte[] toByteArray() {
         return new byte[] { 0, (byte) primaryLayers, (byte) recoveryLayers, (byte) degradedLayers};
     }
