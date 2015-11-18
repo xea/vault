@@ -204,12 +204,4 @@ public class StreamVaultStore implements VaultStore {
 
         return result;
     }
-
-    public static void main(final String[] args) {
-        final List<String> strings = list("alma", "korte", "repa");
-
-        System.out.println("forEach");
-        strings.forEach(System.out::println);
-
-    }
 }
