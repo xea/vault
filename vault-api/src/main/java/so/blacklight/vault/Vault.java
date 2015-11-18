@@ -20,6 +20,7 @@ public class Vault implements Serializable {
     }
 
     public Vault(final VaultSettings settings) {
+        uuid = UUID.randomUUID();
         this.settings = settings;
     }
 

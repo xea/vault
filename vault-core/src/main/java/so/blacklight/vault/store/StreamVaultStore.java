@@ -95,11 +95,9 @@ public class StreamVaultStore implements VaultStore {
 
                     if (errors.isEmpty()) {
                         // yay
-                        System.out.println("Writing");
                         result.map(r -> r.right().value()).toJavaList().forEach(record -> writeBlock(vos, record));
                     } else {
                         // boo
-                        System.out.println("error");
                     }
                 }
 
@@ -170,8 +168,6 @@ public class StreamVaultStore implements VaultStore {
                 for (int i = 0; i < r.count(); i++) {
                     params.add(new EncryptionParameters(cl.index(i), ivs[i], salts[i]));
                 }
-
-                Collections.reverse(params);
 
                 Either<String, Vault> decrypt = crypto.decrypt(r.getBlock(), params);
 
