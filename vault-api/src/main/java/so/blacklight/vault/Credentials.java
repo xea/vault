@@ -52,22 +52,6 @@ public class Credentials {
         return credentials;
     }
     
-    /**
-     * Return a new, initialised {@link Credentials} instance that's identical to this
-     * one except the stored credentials are in reverse order. This may be useful when
-     * converting from encryption mode to decryption.
-     * 
-     * @return reversed credentials
-     */
-    public Credentials reverse() {
-    	final List<Credential> reversedCredentials = new ArrayList<>(credentials);
-    	Collections.reverse(reversedCredentials);
-    	
-    	final Credentials reversed = new Credentials(reversedCredentials);
-    	
-    	return reversed;
-    }
-
     private void sortCredentials() {
         credentials.sort( (a, b) ->
                 (Integer.valueOf(a.hashCode()) .compareTo(Integer.valueOf(b.hashCode()))));

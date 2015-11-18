@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 import fj.F2;
@@ -182,6 +184,8 @@ public class StreamVaultStore implements VaultStore {
                 for (int i = 0; i < r.count(); i++) {
                     params.add(new EncryptionParameters(cl.index(i), ivs[i], salts[i]));
                 }
+
+                Collections.reverse(params);
 
                 Either<String, Vault> decrypt = crypto.decrypt(r.getBlock(), params);
 

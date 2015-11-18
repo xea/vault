@@ -23,23 +23,17 @@ public class StreamVaultStoreTest {
         final VaultSettings settings = new VaultSettings(true, true);
         final Vault vault = new Vault(settings);
 
-        final Credentials encryptCredentials = new Credentials();
-        encryptCredentials.add(new Password("secret".toCharArray()));
-        encryptCredentials.add(new Password("password".toCharArray()));
-        encryptCredentials.add(new Password("sesame".toCharArray()));
-        encryptCredentials.add(new Password("mushroom".toCharArray()));
+        final Credentials credentials = new Credentials();
+        credentials.add(new Password("secret".toCharArray()));
+        credentials.add(new Password("password".toCharArray()));
+        credentials.add(new Password("sesame".toCharArray()));
+        credentials.add(new Password("mushroom".toCharArray()));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        long bs = System.currentTimeMillis();
-        store.save(vault, encryptCredentials, out);
-        System.out.println("Save: " + (System.currentTimeMillis() - bs));
-
-        final Credentials decryptCredentials = encryptCredentials.reverse();
+        store.save(vault, credentials, out);
 
         final ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-        long bl = System.currentTimeMillis();
-        final Either<String, Vault> load = store.load(decryptCredentials, in);
-        System.out.println("Load: " + (System.currentTimeMillis() - bl));
+        final Either<String, Vault> load = store.load(credentials, in);
         assertTrue(load.isRight());
 
         final Vault loadedVault = load.right().value();
