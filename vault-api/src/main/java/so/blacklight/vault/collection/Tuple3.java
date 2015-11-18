@@ -30,6 +30,30 @@ public class Tuple3<T, U, V> {
     }
 
     /**
+     * Initialise a new tuple with a given two-element tuple and an
+     * additional third element
+     *
+     * @param t two-element tuple
+     * @param v third element
+     */
+    public Tuple3(final Tuple2<T, U> t, final V v) {
+        this.t = t.first();
+        this.u = t.second();
+        this.v = v;
+    }
+
+    /**
+     * Initialise a new tuple with an element and a two-element tuple.
+     * @param t first element
+     * @param v two-element tuple
+     */
+    public Tuple3(final T t, final Tuple2<U, V> v) {
+        this.t = t;
+        this.u = v.first();
+        this.v = v.second();
+    }
+
+    /**
      * Return the first element in the tuple
      * 
      * @return first element

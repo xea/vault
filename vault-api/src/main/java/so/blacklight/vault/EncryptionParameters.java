@@ -37,7 +37,6 @@ public class EncryptionParameters {
         iv = generateRandom(IV_LENGTH);
         salt = generateRandom(SALT_LENGTH);
         key = generateKey(credentials, salt);
-
     }
 
     /**

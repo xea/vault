@@ -1,5 +1,7 @@
 package so.blacklight.vault.io;
 
+import so.blacklight.vault.collection.Tuple2;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

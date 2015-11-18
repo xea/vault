@@ -15,10 +15,11 @@ import java.util.Collections;
 import java.util.Optional;
 
 import fj.F;
-import fj.F2;
 import fj.Unit;
 import fj.data.Either;
 import fj.data.List;
+import fj.data.Option;
+import fj.data.Stream;
 import so.blacklight.vault.Credential;
 import so.blacklight.vault.Credentials;
 import so.blacklight.vault.Crypto;
@@ -82,46 +83,15 @@ public class StreamVaultStore implements VaultStore {
                     new Tuple2<>(degradedVault, degradedParams)
             );
 
-            final Crypto<Vault> crypto = new CryptoImpl<>();
+            List<Either<String, List<VaultRecord>>> result = batches.map(tuple -> generateRecords(tuple));
 
-            final F2<Vault, List<EncryptionParameters>, Either<String, VaultRecord>> f = (currentVault, params) -> {
-                Either<String, byte[]> encrypt = crypto.encrypt(currentVault, params.toJavaList());
-
-                if (encrypt.isRight()) {
-                    final VaultRecord record = new VaultRecord(encrypt.right().value());
-
-                    record.addIvs(params.map(p -> p.getIv()).toJavaList());
-                    record.addSalts(params.map(p -> p.getSalt()).toJavaList());
-
-                    return Either.right(record);
-                } else {
-                    return Either.left(encrypt.left().value());
-                }
-            };
-
-            batches.foreach(tuple -> {
-                final Optional<Vault> maybeVault = tuple.first();
-                final List<List<EncryptionParameters>> params = tuple.second();
-
-                if (maybeVault.isPresent()) {
-                    final Vault currentVault = maybeVault.get();
-
-                    List<Either<String, VaultRecord>> result = params.map(param -> f.f(currentVault, param));
-                    List<Either<String, VaultRecord>> errors = result.filter(r -> r.isLeft());
-
-                    if (errors.isEmpty()) {
-                        // yay
-                        result.map(r -> r.right().value()).toJavaList().forEach(record -> writeBlock(vos, record));
-                    } else {
-                        // boo
-                    }
-                }
-
-                return Unit.unit();
-            });
+            if (result.find(Either::isLeft).length() > 0) {
+                // TODO better error handling
+            } else {
+                result.map(r -> r.right().value()).map(l -> l.foreach(r -> writeBlock(vos, r)));
+            }
 
             vos.close();
-            safetyBuffer.write(safetyBuffer.toByteArray());
 
             // All's fine if the end's fine
             outputStream.write(safetyBuffer.toByteArray());
@@ -130,12 +100,50 @@ public class StreamVaultStore implements VaultStore {
         }
     }
 
-    private void writeBlock(final VaultOutputStream out, VaultRecord record) {
+    private Either<String, List<VaultRecord>> generateRecords(final Tuple2<Optional<Vault>, List<List<EncryptionParameters>>> tuple) {
+        final Optional<Vault> maybeVault = tuple.first();
+        final List<List<EncryptionParameters>> params = tuple.second();
+
+        if (maybeVault.isPresent()) {
+            final Vault currentVault = maybeVault.get();
+
+            List<Either<String, VaultRecord>> result = params.map(param -> generateRecord(currentVault, param));
+            Option<String> firstError = result.filter(Either::isLeft).map(e -> e.left().value()).find(i -> true);
+
+            if (firstError.isNone()) {
+                return Either.right(result.map(r -> r.right().value()));
+            } else {
+                return Either.left(firstError.some());
+            }
+        }
+
+        return Either.left("ERROR: No vault present");
+    }
+
+    private Either<String, VaultRecord> generateRecord(final Vault vault, List<EncryptionParameters> params) {
+        final Crypto<Vault> crypto = new CryptoImpl<>();
+        Either<String, byte[]> encrypt = crypto.encrypt(vault, params.toJavaList());
+
+        if (encrypt.isRight()) {
+            final VaultRecord record = new VaultRecord(encrypt.right().value());
+
+            record.addIvs(params.map(p -> p.getIv()).toJavaList());
+            record.addSalts(params.map(p -> p.getSalt()).toJavaList());
+
+            return Either.right(record);
+        } else {
+            return Either.left(encrypt.left().value());
+        }
+    }
+
+    private Unit writeBlock(final VaultOutputStream out, VaultRecord record) {
         try {
             out.writeBlock(record);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        return Unit.unit();
     }
 
     @Override
@@ -143,7 +151,6 @@ public class StreamVaultStore implements VaultStore {
         if (vaultFile.exists() && vaultFile.canRead()) {
             try {
                 final FileInputStream fis = new FileInputStream(vaultFile);
-
                 final Either<String, Vault> maybeVault = load(credentials, fis);
 
                 fis.close();
