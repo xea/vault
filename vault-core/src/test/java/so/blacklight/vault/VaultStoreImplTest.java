@@ -1,14 +1,16 @@
 package so.blacklight.vault;
 
-import fj.data.Either;
-import org.junit.Test;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
+
+import fj.data.Either;
 
 public class VaultStoreImplTest {
 

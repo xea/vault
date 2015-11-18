@@ -1,15 +1,19 @@
 package so.blacklight.vault.store;
 
-import fj.data.Either;
-import org.junit.Test;
-import so.blacklight.vault.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+
+import fj.data.Either;
+import so.blacklight.vault.Credentials;
+import so.blacklight.vault.Password;
+import so.blacklight.vault.Vault;
+import so.blacklight.vault.VaultSettings;
+import so.blacklight.vault.VaultStore;
 
 public class StreamVaultStoreTest {
 
@@ -26,16 +30,16 @@ public class StreamVaultStoreTest {
         encryptCredentials.add(new Password("mushroom".toCharArray()));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        long bs = System.currentTimeMillis();
         store.save(vault, encryptCredentials, out);
+        System.out.println("Save: " + (System.currentTimeMillis() - bs));
 
-        final Credentials decryptCredentials = new Credentials();
-        decryptCredentials.add(new Password("mushroom".toCharArray()));
-        decryptCredentials.add(new Password("sesame".toCharArray()));
-        decryptCredentials.add(new Password("password".toCharArray()));
-        decryptCredentials.add(new Password("secret".toCharArray()));
+        final Credentials decryptCredentials = encryptCredentials.reverse();
 
         final ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        long bl = System.currentTimeMillis();
         final Either<String, Vault> load = store.load(decryptCredentials, in);
+        System.out.println("Load: " + (System.currentTimeMillis() - bl));
         assertTrue(load.isRight());
 
         final Vault loadedVault = load.right().value();

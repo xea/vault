@@ -1,12 +1,12 @@
 package so.blacklight.vault;
 
-import com.github.jankroken.commandline.CommandLineParser;
-import com.github.jankroken.commandline.OptionStyle;
-import fj.data.Either;
-
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Optional;
+
+import com.github.jankroken.commandline.CommandLineParser;
+import com.github.jankroken.commandline.OptionStyle;
+
+import fj.data.Either;
 
 /**
  * Main executable class, intended to be called from the command line.

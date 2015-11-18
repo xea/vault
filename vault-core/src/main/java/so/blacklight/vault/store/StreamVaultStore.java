@@ -1,19 +1,33 @@
 package so.blacklight.vault.store;
 
-import fj.F;
+import static fj.data.List.list;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Optional;
+
 import fj.F2;
 import fj.Unit;
 import fj.data.Either;
 import fj.data.List;
-import so.blacklight.vault.*;
+import so.blacklight.vault.Credential;
+import so.blacklight.vault.Credentials;
+import so.blacklight.vault.Crypto;
+import so.blacklight.vault.CryptoImpl;
+import so.blacklight.vault.EncryptionParameters;
+import so.blacklight.vault.Tuple2;
+import so.blacklight.vault.Vault;
+import so.blacklight.vault.VaultStore;
 import so.blacklight.vault.io.VaultInputStream;
 import so.blacklight.vault.io.VaultOutputStream;
 import so.blacklight.vault.io.VaultRecord;
-
-import java.io.*;
-import java.util.*;
-
-import static fj.data.List.list;
 
 public class StreamVaultStore implements VaultStore {
 

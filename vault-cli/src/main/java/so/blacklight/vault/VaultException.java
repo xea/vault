@@ -2,7 +2,9 @@ package so.blacklight.vault;
 
 public class VaultException extends Exception {
 
-    public VaultException() {
+	private static final long serialVersionUID = 1996436409038879397L;
+
+	public VaultException() {
         super();
     }
 

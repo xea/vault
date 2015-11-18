@@ -1,17 +1,15 @@
 package so.blacklight.vault.io;
 
-import org.junit.Test;
-import so.blacklight.vault.Vault;
-import so.blacklight.vault.VaultStoreImpl;
-import so.blacklight.vault.store.Layout;
+import static org.junit.Assert.assertArrayEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.IOException;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+
+import so.blacklight.vault.Vault;
+import so.blacklight.vault.store.Layout;
 
 public class VaultOutputStreamTest {
 
