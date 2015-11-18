@@ -2,7 +2,7 @@ package so.blacklight.vault.io;
 
 import fj.data.List;
 import so.blacklight.vault.EncryptionParameters;
-import so.blacklight.vault.VaultStoreImpl;
+import so.blacklight.vault.VaultStore;
 import so.blacklight.vault.store.Layout;
 
 import java.io.DataInputStream;
@@ -27,10 +27,10 @@ public class VaultInputStream extends DataInputStream {
     public VaultInputStream(InputStream in) throws IOException {
         super(in);
 
-        final byte[] magicBytes = new byte[VaultStoreImpl.MAGIC_BYTES.length];
+        final byte[] magicBytes = new byte[VaultStore.MAGIC_BYTES.length];
         read(magicBytes);
 
-        if (!Arrays.equals(magicBytes, VaultStoreImpl.MAGIC_BYTES)) {
+        if (!Arrays.equals(magicBytes, VaultStore.MAGIC_BYTES)) {
             throw new IOException("Stream is not a valid stream");
         }
 

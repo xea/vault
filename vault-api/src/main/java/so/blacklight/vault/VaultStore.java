@@ -11,6 +11,8 @@ import java.io.OutputStream;
  */
 public interface VaultStore {
 
+    byte[] MAGIC_BYTES = { 0, 116, 127, 113 };
+
     void save(Vault vault, Credentials credentials, File vaultFile);
 
     void save(Vault vault, Credentials credentials, OutputStream outputStream);

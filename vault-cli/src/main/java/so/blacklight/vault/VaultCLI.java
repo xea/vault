@@ -7,6 +7,7 @@ import com.github.jankroken.commandline.CommandLineParser;
 import com.github.jankroken.commandline.OptionStyle;
 
 import fj.data.Either;
+import so.blacklight.vault.store.StreamVaultStore;
 
 /**
  * Main executable class, intended to be called from the command line.
@@ -71,7 +72,7 @@ public class VaultCLI {
 
         if (vaultFile.exists() && vaultFile.canRead()) {
             final Credentials credentials = buildCredentials(options);
-            final VaultStore store = new VaultStoreImpl();
+            final VaultStore store = new StreamVaultStore();
 
             final Either<String, Vault> maybeVault = store.load(credentials, vaultFile);
 
@@ -106,7 +107,7 @@ public class VaultCLI {
             final Credentials credentials = buildCredentials(options);
             final VaultSettings settings = new VaultSettings(options.isGenerateRecovery(), options.isGenerateDegraded());
             final Vault vault = new Vault(settings);
-            final VaultStore vaultStore = new VaultStoreImpl();
+            final VaultStore vaultStore = new StreamVaultStore();
 
             vaultStore.save(vault, credentials, vaultFile);
         }

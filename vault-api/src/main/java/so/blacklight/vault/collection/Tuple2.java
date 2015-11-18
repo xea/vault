@@ -1,4 +1,4 @@
-package so.blacklight.vault;
+package so.blacklight.vault.collection;
 
 /**
  * It groups two arbitrary object into a single combined value. The values are ordered

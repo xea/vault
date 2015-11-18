@@ -11,10 +11,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
+import fj.F;
 import fj.F2;
 import fj.Unit;
 import fj.data.Either;
@@ -24,7 +24,7 @@ import so.blacklight.vault.Credentials;
 import so.blacklight.vault.Crypto;
 import so.blacklight.vault.CryptoImpl;
 import so.blacklight.vault.EncryptionParameters;
-import so.blacklight.vault.Tuple2;
+import so.blacklight.vault.collection.Tuple2;
 import so.blacklight.vault.Vault;
 import so.blacklight.vault.VaultStore;
 import so.blacklight.vault.io.VaultInputStream;
@@ -138,13 +138,6 @@ public class StreamVaultStore implements VaultStore {
         }
     }
 
-    private List<VaultRecord> generateRecords(Vault vault, Credentials credentials) {
-        final Crypto<Vault> crypto = new CryptoImpl<>();
-
-
-        return null;
-    }
-
     @Override
     public Either<String, Vault> load(Credentials credentials, File vaultFile) {
         if (vaultFile.exists() && vaultFile.canRead()) {
@@ -156,7 +149,9 @@ public class StreamVaultStore implements VaultStore {
                 fis.close();
 
                 return maybeVault;
-            } catch (Exception e) {
+            } catch (FileNotFoundException e) {
+                return Either.left(e.getMessage());
+            } catch (IOException e) {
                 return Either.left(e.getMessage());
             }
         }
@@ -167,44 +162,50 @@ public class StreamVaultStore implements VaultStore {
     @Override
     public Either<String, Vault> load(Credentials credentials, InputStream inputStream) {
         try {
-            final VaultInputStream vis = new VaultInputStream(inputStream);
-            final List<VaultRecord> allRecords = vis.readAll();
-            vis.close();
-
             final List<Credential> cl = list(credentials.getCredentials());
-            final List<VaultRecord> records = allRecords.filter(r -> r.count() == cl.length());
-
-            final Crypto<Vault> crypto = new CryptoImpl<>();
-            final List<Either<String, Vault>> results = records.map(r -> {
-                final byte[][] ivs = r.getIvs();
-                final byte[][] salts = r.getSalts();
-
-                final java.util.List<EncryptionParameters> params = new ArrayList<>();
-
-                for (int i = 0; i < r.count(); i++) {
-                    params.add(new EncryptionParameters(cl.index(i), ivs[i], salts[i]));
-                }
-
-                Collections.reverse(params);
-
-                Either<String, Vault> decrypt = crypto.decrypt(r.getBlock(), params);
-
-                return decrypt;
-            });
-
-            final List<Either<String, Vault>> unlocked = results.filter(e -> e.isRight());
+            final List<VaultRecord> records = readAllRecords(inputStream, (r -> r.count() == cl.length()));
+            final List<Either<String, Vault>> unlocked = decryptRecords(cl, records).filter(e -> e.isRight());
 
             if (unlocked.length() > 0) {
                 return unlocked.index(0);
             } else {
                 return Either.left("Sorry :(");
             }
-
         } catch (IOException e) {
-            e.printStackTrace();
+            return Either.left("Error during loading: " + e.getMessage());
         }
-
-        return Either.left("I've got no idea what I'm doing");
     }
 
+    private List<VaultRecord> readAllRecords(final InputStream in, final F<VaultRecord, Boolean> f) throws IOException {
+        return readAllRecords(in).filter(f);
+    }
+
+    private List<VaultRecord> readAllRecords(final InputStream in) throws IOException {
+        final VaultInputStream vis = new VaultInputStream(in);
+        final List<VaultRecord> allRecords = vis.readAll();
+        vis.close();
+
+        return allRecords;
+    }
+
+    private List<Either<String, Vault>> decryptRecords(final List<Credential> credentials, final List<VaultRecord> records) {
+        final Crypto<Vault> crypto = new CryptoImpl<>();
+        final List<Either<String, Vault>> result = records.map(r -> {
+            final byte[][] ivs = r.getIvs();
+            final byte[][] salts = r.getSalts();
+
+            // we're leveraging a mutable collection here
+            final java.util.List<EncryptionParameters> params = new ArrayList<>();
+
+            for (int i = 0; i < r.count(); i++) {
+                params.add(new EncryptionParameters(credentials.index(i), ivs[i], salts[i]));
+            }
+
+            Collections.reverse(params);
+
+            return crypto.decrypt(r.getBlock(), params);
+        });
+
+        return result;
+    }
 }

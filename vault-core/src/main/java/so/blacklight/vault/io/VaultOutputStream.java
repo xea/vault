@@ -1,6 +1,6 @@
 package so.blacklight.vault.io;
 
-import so.blacklight.vault.VaultStoreImpl;
+import so.blacklight.vault.VaultStore;
 import so.blacklight.vault.store.Layout;
 
 import java.io.*;
@@ -21,7 +21,7 @@ public class VaultOutputStream extends DataOutputStream {
     }
 
     public void writeMagicBytes() throws IOException {
-        write(VaultStoreImpl.MAGIC_BYTES);
+        write(VaultStore.MAGIC_BYTES);
     }
 
     public void writeLayout(final Layout layout) throws IOException {
