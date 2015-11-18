@@ -1,7 +1,5 @@
 package so.blacklight.vault;
 
-import fj.data.List;
-
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.UUID;

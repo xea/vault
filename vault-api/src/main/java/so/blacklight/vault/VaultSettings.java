@@ -4,10 +4,15 @@ import java.io.Serializable;
 
 public class VaultSettings implements Serializable {
 
-    private final boolean generateRecovery;
+	private static final long serialVersionUID = -6893359789683865895L;
+
+	private final boolean generateRecovery;
 
     private final boolean generateDegraded;
 
+    /**
+     * Initialise a new setting object with default values
+     */
     public VaultSettings() {
         generateRecovery = false;
         generateDegraded = false;
@@ -18,10 +23,18 @@ public class VaultSettings implements Serializable {
         this.generateDegraded = generateDegraded;
     }
 
+    /**
+     * Indicate if a recovery segment should be generated for the current vault
+     * @return <code>true</code> if the segment should be generated, otherwise <code>false</code>
+     */
     public boolean isGenerateRecovery() {
         return generateRecovery;
     }
 
+    /**
+     * Indicate if a degraded segment should be generated for the current vault
+     * @return <code>true</code> if the segment should be generated, otherwise <code>false</code>
+     */
     public boolean isGenerateDegraded() {
         return generateDegraded;
     }
