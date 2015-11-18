@@ -60,12 +60,6 @@ public class StreamVaultStore implements VaultStore {
             final Optional<Vault> recoveryVault = vault.getRecoverySegment();
             final Optional<Vault> degradedVault = vault.getDegradedSegment();
 
-            /*
-            final Map<Optional<Vault>, List<List<EncryptionParameters>>> map = new Tree HashMap<>();
-            map.put(primaryVault, primaryParams);
-            map.put(recoveryVault, recoveryParams);
-            map.put(degradedVault, degradedParams);
-            */
             final List<Tuple2<Optional<Vault>, List<List<EncryptionParameters>>>> batches = list(
                     new Tuple2<>(primaryVault, primaryParams),
                     new Tuple2<>(recoveryVault, recoveryParams),
@@ -160,19 +154,43 @@ public class StreamVaultStore implements VaultStore {
     public Either<String, Vault> load(Credentials credentials, InputStream inputStream) {
         try {
             final VaultInputStream vis = new VaultInputStream(inputStream);
+            final List<VaultRecord> allRecords = vis.readAll();
+            vis.close();
 
-            final List<VaultRecord> records = vis.readAll();
             final List<Credential> cl = list(credentials.getCredentials());
-            //records.map(r -> cl.map(c -> new EncryptionParameters(c, r.getIvs(), r.getSalts())));
+            final List<VaultRecord> records = allRecords.filter(r -> r.count() == cl.length());
 
             final Crypto<Vault> crypto = new CryptoImpl<>();
+            final List<Either<String, Vault>> results = records.map(r -> {
+                final byte[][] ivs = r.getIvs();
+                final byte[][] salts = r.getSalts();
 
-            vis.close();
+                final java.util.List<EncryptionParameters> params = new ArrayList<>();
+
+                for (int i = 0; i < r.count(); i++) {
+                    params.add(new EncryptionParameters(cl.index(i), ivs[i], salts[i]));
+                }
+
+                Collections.reverse(params);
+
+                Either<String, Vault> decrypt = crypto.decrypt(r.getBlock(), params);
+
+                return decrypt;
+            });
+
+            final List<Either<String, Vault>> unlocked = results.filter(e -> e.isRight());
+
+            if (unlocked.length() > 0) {
+                return unlocked.index(0);
+            } else {
+                return Either.left("Sorry :(");
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return null;
+        return Either.left("I've got no idea what I'm doing");
     }
 
 }

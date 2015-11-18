@@ -1,6 +1,5 @@
 package so.blacklight.vault.io;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -59,5 +58,9 @@ public class VaultRecord {
 
     public byte[] getBlock() {
         return block;
+    }
+
+    public int count() {
+        return ivs.size();
     }
 }
