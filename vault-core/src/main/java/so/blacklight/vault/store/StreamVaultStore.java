@@ -1,36 +1,22 @@
 package so.blacklight.vault.store;
 
-import static fj.data.List.list;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Optional;
-
 import fj.F;
 import fj.Unit;
 import fj.data.Either;
 import fj.data.List;
 import fj.data.Option;
-import fj.data.Stream;
-import so.blacklight.vault.Credential;
-import so.blacklight.vault.Credentials;
-import so.blacklight.vault.Crypto;
-import so.blacklight.vault.CryptoImpl;
-import so.blacklight.vault.EncryptionParameters;
+import so.blacklight.vault.*;
 import so.blacklight.vault.collection.Tuple2;
-import so.blacklight.vault.Vault;
-import so.blacklight.vault.VaultStore;
 import so.blacklight.vault.io.VaultInputStream;
 import so.blacklight.vault.io.VaultOutputStream;
 import so.blacklight.vault.io.VaultRecord;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Optional;
+
+import static fj.data.List.list;
 
 public class StreamVaultStore implements VaultStore {
 
@@ -51,6 +37,31 @@ public class StreamVaultStore implements VaultStore {
         }
     }
 
+    private List<Either<String, List<VaultRecord>>> saveInternal(final Vault vault, final Credentials credentials) {
+        final List<Credential> creds = list(credentials.getCredentials());
+
+        final List<F<List<Credential>, List<List<Credential>>>> fs = list(
+                l -> list(new List[] { l }),
+                l -> l.map(c -> l.filter(cf -> !cf.equals(c))),
+                l -> l.map(c1 -> l.map(c2 -> l.filter(cf -> !cf.equals(c1) && !cf.equals(c2) && !c1.equals(c2))))
+                    .foldRight((currentItem, foldList) -> foldList.append(currentItem), List.<List<Credential>>list())
+                        .filter(fl -> fl.length() > 0).nub()
+        );
+
+        final List<F<Vault, Optional<Vault>>> fv = list(
+                v -> Optional.of(v),
+                v -> v.getRecoverySegment(),
+                v -> v.getDegradedSegment()
+        );
+
+        List<Either<String, List<VaultRecord>>> map = fs.map(f ->
+                f.f(creds).map(list ->
+                        list.map(EncryptionParameters::new)))
+                .zipWith(fv.map(f ->
+                        f.f(vault)), (l, v) -> new Tuple2(v, l)).map(tuple -> generateRecords(tuple));
+        return map;
+    }
+
     @Override
     public void save(Vault vault, Credentials credentials, OutputStream outputStream) {
         try {
@@ -61,29 +72,7 @@ public class StreamVaultStore implements VaultStore {
             vos.writeMagicBytes();
             vos.writeLayout(layout);
 
-            final List<Credential> cl = list(credentials.getCredentials());
-            final List<List<Credential>> primaryCredentials = List.<List<Credential>>list(cl);
-            final List<List<Credential>> recoveryCredentials = cl.map(c -> cl.filter(cf -> !cf.equals(c)));
-            final List<List<Credential>> degradedCredentials = cl.map(c1 -> cl.map(c2 -> cl.filter(cf -> !cf.equals(c1) && !cf.equals(c2) && !c1.equals(c2))))
-                    .foldRight((currentItem, foldList) -> {
-                        return foldList.append(currentItem);
-                    }, List.<List<Credential>>list()).filter(l -> l.length() > 0).nub();
-
-            final List<List<EncryptionParameters>> primaryParams = primaryCredentials.map(list -> list.map(EncryptionParameters::new));
-            final List<List<EncryptionParameters>> recoveryParams = recoveryCredentials.map(list -> list.map(EncryptionParameters::new));
-            final List<List<EncryptionParameters>> degradedParams = degradedCredentials.map(list -> list.map(EncryptionParameters::new));
-
-            final Optional<Vault> primaryVault = Optional.of(vault);
-            final Optional<Vault> recoveryVault = vault.getRecoverySegment();
-            final Optional<Vault> degradedVault = vault.getDegradedSegment();
-
-            final List<Tuple2<Optional<Vault>, List<List<EncryptionParameters>>>> batches = list(
-                    new Tuple2<>(primaryVault, primaryParams),
-                    new Tuple2<>(recoveryVault, recoveryParams),
-                    new Tuple2<>(degradedVault, degradedParams)
-            );
-
-            List<Either<String, List<VaultRecord>>> result = batches.map(tuple -> generateRecords(tuple));
+            final List<Either<String, List<VaultRecord>>> result = saveInternal(vault, credentials);
 
             if (result.find(Either::isLeft).length() > 0) {
                 // TODO better error handling
@@ -214,5 +203,13 @@ public class StreamVaultStore implements VaultStore {
         });
 
         return result;
+    }
+
+    public static void main(final String[] args) {
+        final List<String> strings = list("alma", "korte", "repa");
+
+        System.out.println("forEach");
+        strings.forEach(System.out::println);
+
     }
 }
