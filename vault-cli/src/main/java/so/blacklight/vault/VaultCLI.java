@@ -1,7 +1,11 @@
 package so.blacklight.vault;
 
+import java.io.Console;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import com.github.jankroken.commandline.CommandLineParser;
 import com.github.jankroken.commandline.OptionStyle;
@@ -19,6 +23,7 @@ public class VaultCLI {
     public static void main(final String[] args) {
         final VaultCLI cli = new VaultCLI();
         final Options options = cli.processArgs(args);
+
         cli.processRequest(options);
     }
 
@@ -71,18 +76,22 @@ public class VaultCLI {
         final File vaultFile = options.getVaultFile().orElse(DEFAULT_VAULT);
 
         if (vaultFile.exists() && vaultFile.canRead()) {
-            final Credentials credentials = buildCredentials(options);
-            final VaultStore store = new StreamVaultStore();
+            try {
+                final Credentials credentials = buildCredentials(options);
+                final VaultStore store = new StreamVaultStore();
 
-            final Either<String, Vault> maybeVault = store.load(credentials, vaultFile);
+                final Either<String, Vault> maybeVault = store.load(credentials, vaultFile);
 
-            if (maybeVault.isRight()) {
-                final Vault vault = maybeVault.right().value();
+                if (maybeVault.isRight()) {
+                    final Vault vault = maybeVault.right().value();
 
-                // TODO list entries
-            } else {
-                final String message = "ERROR: Could not load vault: ";
-                System.out.println(message + maybeVault.left().value());
+                    // TODO list entries
+                } else {
+                    final String message = "ERROR: Could not load vault: ";
+                    System.out.println(message + maybeVault.left().value());
+                }
+            } catch (final IOException e) {
+                throw new VaultException("ERROR: " + e.getMessage());
             }
         } else {
             final String message = "ERROR: Vault file doesn't exist or isn't readable: ";
@@ -104,53 +113,65 @@ public class VaultCLI {
         if (vaultFile.exists()) {
             System.out.println("ERROR: Vault file already exists: " + vaultFile.getAbsolutePath());
         } else {
-            final Credentials credentials = buildCredentials(options);
-            final VaultSettings settings = new VaultSettings(options.isGenerateRecovery(), options.isGenerateDegraded());
-            final Vault vault = new Vault(settings);
-            final VaultStore vaultStore = new StreamVaultStore();
+            try {
+                final Credentials credentials = buildCredentials(options);
+                final VaultSettings settings = new VaultSettings(options.isGenerateRecovery(), options.isGenerateDegraded());
+                final Vault vault = new Vault(settings);
+                final VaultStore vaultStore = new StreamVaultStore();
 
-            vaultStore.save(vault, credentials, vaultFile);
+                vaultStore.save(vault, credentials, vaultFile);
+            } catch (final IOException e) {
+                throw new VaultException("ERROR: " + e.getMessage());
+            }
         }
     }
 
     public void showHelp(final Options.Action action) {
-        System.out.println("HELP MESSAGE ABOUT: " + action.name());
-        System.out.println("Usage: ");
-        System.out.println("\tvault -c -v <vault> -k <keyfile>");
+        if (action == Options.Action.DEFAULT_ACTION) {
+            System.out.println("Usage: ");
+            //System.out.println("\tvault -c -v <vault> -k <keyfile>");
+            System.out.println("    vault -create -v <vault> [OPTS]         Create new vault");
+            System.out.println("    vault -list -v <vault> [OPTS]           List vault entries");
+            System.out.println();
+            System.out.println("  Where OPTS are:");
+            System.out.println("    -r                     Activate recovery segment");
+            System.out.println("    -k <keyfile>           Use keyfile for encryption/decryption");
+            System.out.println("    -d                     Activate degraded segment");
+            System.out.println("    -m [METHODS]           Use specified authentication methods");
+            System.out.println();
+            System.out.println("  Where METHODS are:");
+            System.out.println("    pw                     Use password-based encryption");
+            System.out.println("    key                    Use key file-based encryption");
+            System.out.println();
+        } else {
+            System.out.println("HELP MESSAGE ABOUT: " + action.name());
+        }
     }
 
-    protected Credentials buildCredentials(final Options options) {
-        final char[] password;
-
-        System.out.print("Password: ");
-        if (System.console() == null) {
-            // TODO Try reading password from file when console is not available
-            password = "asdf".toCharArray();
-        } else {
-            password = System.console().readPassword();
-        }
-
-        final char[] staticKey;
-        System.out.print("Static key: ");
-        if (System.console() == null) {
-            staticKey = null;
-        } else {
-            staticKey = System.console().readPassword();
-        }
-
-        final char[] otp;
-
-        System.out.print("One-time password: ");
-        if (System.console() == null) {
-            otp = null;
-        } else {
-            otp = System.console().readPassword();
-        }
-
+    protected Credentials buildCredentials(final Options options) throws IOException {
         final Credentials credentials = new Credentials();
-        credentials.add(new Password(password));
-        credentials.add(new Password(otp));
-        //credentials.add(new PrivateKey(new String(staticKey).getBytes()));
+
+        for (final String authOption : options.getAuthOptions()) {
+            final Console console = System.console();
+
+            if ("pw".equals(authOption)) {
+                if (console != null) {
+                    System.out.print("Enter password: ");
+                    credentials.add(new Password(console.readPassword()));
+                }
+            } else if ("key".equals(authOption)) {
+                if (console != null) {
+                    System.out.print("Enter path to key file: ");
+                    final File keyFile = new File(console.readLine());
+
+                    if (keyFile.exists()) {
+                        final Path keyPath = keyFile.toPath();
+                        final byte[] bytes = Files.readAllBytes(keyPath);
+                        credentials.add(new PrivateKey(bytes));
+                    }
+                }
+            }
+        }
 
         return credentials;
     }

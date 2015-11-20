@@ -3,6 +3,9 @@ package so.blacklight.vault;
 import com.github.jankroken.commandline.annotations.*;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -19,6 +22,8 @@ public class Options {
     private Optional<File> vaultFile = Optional.empty();
 
     private Optional<String> alias = Optional.empty();
+
+    private List<String> authOptions = new ArrayList<>();
 
     private boolean generateRecovery = false;
 
@@ -116,13 +121,23 @@ public class Options {
         return alias;
     }
 
+    @Option
+    @ShortSwitch("m")
+    @LongSwitch("methods")
+    @SingleArgument
+    public void setAuthenticationMethod(String method) {
+        authOptions = Arrays.asList(method.split("[\\s]*,[\\s]*]"));
+    }
+
+    public List<String> getAuthOptions() {
+        return authOptions;
+    }
+
     public boolean isValid() {
         boolean valid = false;
 
         if (action == Action.CREATE_VAULT) {
-            if (keyFile.isPresent() && vaultFile.isPresent()) {
-                valid = true;
-            }
+            valid = true;
         } else if (action == Action.LIST_ENTRIES) {
             if (vaultFile.isPresent()) {
                 valid = true;

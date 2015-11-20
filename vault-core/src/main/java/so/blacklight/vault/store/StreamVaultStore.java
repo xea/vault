@@ -37,31 +37,6 @@ public class StreamVaultStore implements VaultStore {
         }
     }
 
-    private List<Either<String, List<VaultRecord>>> saveInternal(final Vault vault, final Credentials credentials) {
-        final List<Credential> creds = list(credentials.getCredentials());
-
-        final List<F<List<Credential>, List<List<Credential>>>> fs = list(
-                l -> list(new List[] { l }),
-                l -> l.map(c -> l.filter(cf -> !cf.equals(c))),
-                l -> l.map(c1 -> l.map(c2 -> l.filter(cf -> !cf.equals(c1) && !cf.equals(c2) && !c1.equals(c2))))
-                    .foldRight((currentItem, foldList) -> foldList.append(currentItem), List.<List<Credential>>list())
-                        .filter(fl -> fl.length() > 0).nub()
-        );
-
-        final List<F<Vault, Optional<Vault>>> fv = list(
-                v -> Optional.of(v),
-                v -> v.getRecoverySegment(),
-                v -> v.getDegradedSegment()
-        );
-
-        List<Either<String, List<VaultRecord>>> map = fs.map(f ->
-                f.f(creds).map(list ->
-                        list.map(EncryptionParameters::new)))
-                .zipWith(fv.map(f ->
-                        f.f(vault)), (l, v) -> new Tuple2(v, l)).map(tuple -> generateRecords(tuple));
-        return map;
-    }
-
     @Override
     public void save(Vault vault, Credentials credentials, OutputStream outputStream) {
         try {
@@ -87,52 +62,6 @@ public class StreamVaultStore implements VaultStore {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private Either<String, List<VaultRecord>> generateRecords(final Tuple2<Optional<Vault>, List<List<EncryptionParameters>>> tuple) {
-        final Optional<Vault> maybeVault = tuple.first();
-        final List<List<EncryptionParameters>> params = tuple.second();
-
-        if (maybeVault.isPresent()) {
-            final Vault currentVault = maybeVault.get();
-
-            List<Either<String, VaultRecord>> result = params.map(param -> generateRecord(currentVault, param));
-            Option<String> firstError = result.filter(Either::isLeft).map(e -> e.left().value()).find(i -> true);
-
-            if (firstError.isNone()) {
-                return Either.right(result.map(r -> r.right().value()));
-            } else {
-                return Either.left(firstError.some());
-            }
-        }
-
-        return Either.left("ERROR: No vault present");
-    }
-
-    private Either<String, VaultRecord> generateRecord(final Vault vault, List<EncryptionParameters> params) {
-        final Crypto<Vault> crypto = new CryptoImpl<>();
-        Either<String, byte[]> encrypt = crypto.encrypt(vault, params.toJavaList());
-
-        if (encrypt.isRight()) {
-            final VaultRecord record = new VaultRecord(encrypt.right().value());
-
-            record.addIvs(params.map(p -> p.getIv()).toJavaList());
-            record.addSalts(params.map(p -> p.getSalt()).toJavaList());
-
-            return Either.right(record);
-        } else {
-            return Either.left(encrypt.left().value());
-        }
-    }
-
-    private Unit writeBlock(final VaultOutputStream out, VaultRecord record) {
-        try {
-            out.writeBlock(record);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return Unit.unit();
     }
 
     @Override
@@ -171,6 +100,83 @@ public class StreamVaultStore implements VaultStore {
             return Either.left("Error during loading: " + e.getMessage());
         }
     }
+
+    private List<Either<String, List<VaultRecord>>> saveInternal(final Vault vault, final Credentials credentials) {
+        final List<Credential> creds = list(credentials.getCredentials());
+
+        // for each vault segment type we generate a list of credential combinations
+        final List<F<List<Credential>, List<List<Credential>>>> fs = list(
+                l -> list(new List[] { l }),
+                l -> l.map(c -> l.filter(cf -> !cf.equals(c))),
+                l -> l.map(c1 -> l.map(c2 -> l.filter(cf -> !cf.equals(c1) && !cf.equals(c2) && !c1.equals(c2))))
+                        .foldRight((currentItem, foldList) -> foldList.append(currentItem), List.<List<Credential>>list())
+                        .filter(fl -> fl.length() > 0).nub()
+        );
+
+        final List<F<Vault, Optional<Vault>>> fv = list(
+                v -> Optional.of(v),
+                v -> v.getRecoverySegment(),
+                v -> v.getDegradedSegment()
+        );
+
+        // Override time-consuming operations with trivial ones for those steps when we won't be encrypting anything
+        final List<F<List<Credential>, List<List<Credential>>>> ff = fv.map(f -> f.f(vault).isPresent()).zipWith(fs, (a, b) -> a ? b : b); //(l -> list()));
+
+        // for each vault record we generate new encryption parameters and then encrypt the records
+        final List<Either<String, List<VaultRecord>>> map = ff.map(f ->
+                f.f(creds).map(list ->
+                        list.map(c -> new EncryptionParameters(c))))
+                .zipWith(fv.map(f ->
+                        f.f(vault)), (l, v) -> new Tuple2<>(v, l)).filter(t -> t.first().isPresent()).map(tuple -> generateRecords(tuple));
+        return map;
+    }
+
+    private Either<String, List<VaultRecord>> generateRecords(final Tuple2<Optional<Vault>, List<List<EncryptionParameters>>> tuple) {
+        final Optional<Vault> maybeVault = tuple.first();
+        final List<List<EncryptionParameters>> params = tuple.second();
+
+        if (maybeVault.isPresent()) {
+            final Vault currentVault = maybeVault.get();
+
+            List<Either<String, VaultRecord>> result = params.map(param -> generateRecord(currentVault, param));
+            Option<String> firstError = result.filter(Either::isLeft).map(e -> e.left().value()).find(i -> true);
+
+            if (firstError.isNone()) {
+                return Either.right(result.map(r -> r.right().value()));
+            } else {
+                return Either.left(firstError.some());
+            }
+        }
+
+        return Either.left("ERROR: No vault present");
+    }
+
+    private Either<String, VaultRecord> generateRecord(final Vault vault, List<EncryptionParameters> params) {
+        final Crypto<Vault> crypto = new CryptoImpl<>();
+        Either<String, byte[]> encrypt = crypto.encrypt(vault, params.toJavaList());
+
+        if (encrypt.isRight()) {
+            final VaultRecord record = new VaultRecord(encrypt.right().value());
+
+            record.addIvs(params.map(EncryptionParameters::getIv).toJavaList());
+            record.addSalts(params.map(EncryptionParameters::getSalt).toJavaList());
+
+            return Either.right(record);
+        } else {
+            return Either.left(encrypt.left().value());
+        }
+    }
+
+    private Unit writeBlock(final VaultOutputStream out, VaultRecord record) {
+        try {
+            out.writeBlock(record);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return Unit.unit();
+    }
+
 
     private List<VaultRecord> readAllRecords(final InputStream in, final F<VaultRecord, Boolean> f) throws IOException {
         return readAllRecords(in).filter(f);
