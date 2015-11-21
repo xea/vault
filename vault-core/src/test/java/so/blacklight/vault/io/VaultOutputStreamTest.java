@@ -8,15 +8,12 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import so.blacklight.vault.Vault;
 import so.blacklight.vault.store.Layout;
 
 public class VaultOutputStreamTest {
 
     @Test
     public void writtenStreamShouldBeReadable() throws IOException {
-        final Vault vault = new Vault();
-
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final VaultOutputStream vos = new VaultOutputStream(baos);
 
@@ -38,5 +35,8 @@ public class VaultOutputStreamTest {
         assertArrayEquals(ivs, readRecord.getIvs());
         assertArrayEquals(salts, readRecord.getSalts());
         assertArrayEquals(block, readRecord.getBlock());
+        
+        vos.close();
+        vis.close();
     }
 }

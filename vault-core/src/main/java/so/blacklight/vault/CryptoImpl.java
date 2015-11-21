@@ -133,7 +133,9 @@ public class CryptoImpl<T extends Serializable> implements Crypto<T> {
         try {
             final Object readObject = ois.readObject();
 
-            final T result = (T) readObject;
+            // we're suppressing this warning because we don't have many options determining the correct type
+            @SuppressWarnings("unchecked")
+			final T result = (T) readObject;
 
             return Either.right(result);
         } catch (ClassNotFoundException e) {

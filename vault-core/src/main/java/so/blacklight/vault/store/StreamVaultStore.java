@@ -101,7 +101,8 @@ public class StreamVaultStore implements VaultStore {
         }
     }
 
-    private List<Either<String, List<VaultRecord>>> saveInternal(final Vault vault, final Credentials credentials) {
+    @SuppressWarnings("unchecked")
+	private List<Either<String, List<VaultRecord>>> saveInternal(final Vault vault, final Credentials credentials) {
         final List<Credential> creds = list(credentials.getCredentials());
 
         // for each vault segment type we generate a list of credential combinations
@@ -127,11 +128,12 @@ public class StreamVaultStore implements VaultStore {
                 f.f(creds).map(list ->
                         list.map(c -> new EncryptionParameters(c))))
                 .zipWith(fv.map(f ->
-                        f.f(vault)), (l, v) -> new Tuple2<>(v, l)).filter(t -> t.first().isPresent()).map(tuple -> generateRecords(tuple));
+                        f.f(vault)), (l, v) -> new EncTuple(v, l))
+                .filter(t -> t.first().isPresent()).map(tuple -> generateRecords(tuple));
         return map;
     }
-
-    private Either<String, List<VaultRecord>> generateRecords(final Tuple2<Optional<Vault>, List<List<EncryptionParameters>>> tuple) {
+    
+    private Either<String, List<VaultRecord>> generateRecords(final EncTuple tuple) {
         final Optional<Vault> maybeVault = tuple.first();
         final List<List<EncryptionParameters>> params = tuple.second();
 
@@ -210,4 +212,16 @@ public class StreamVaultStore implements VaultStore {
 
         return result;
     }
+    
+    /**
+     * Blatant workaround/hack class for ensuring type safety where type erasure would make types difficult to infer
+     */
+    private static class EncTuple extends Tuple2<Optional<Vault>, List<List<EncryptionParameters>>> {
+
+		public EncTuple(Optional<Vault> t, List<List<EncryptionParameters>> u) {
+			super(t, u);
+		}
+    	
+    }
+
 }

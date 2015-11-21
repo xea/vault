@@ -8,6 +8,8 @@ import java.io.InputStream;
 
 public class Layout {
 
+	private int reservedByte;
+	
     private int primaryLayers;
 
     private int recoveryLayers;
@@ -18,26 +20,28 @@ public class Layout {
         final byte[] buffer = new byte[4];
         is.read(buffer);
 
-        final byte reserved = buffer[0];
+        reservedByte = buffer[0];
         primaryLayers = buffer[1];
         recoveryLayers = buffer[2];
         degradedLayers = buffer[3];
     }
 
     public Layout(final byte[] layoutBytes) {
-        final byte reserved = layoutBytes[0];
+        reservedByte = layoutBytes[0];
         primaryLayers = layoutBytes[1];
         recoveryLayers = layoutBytes[2];
         degradedLayers = layoutBytes[3];
     }
 
     public Layout(int primaryLayers, int recoveryLayers, int degradedLayers) {
+    	reservedByte = 0;
         this.primaryLayers = sanitize(primaryLayers);
         this.recoveryLayers = sanitize(recoveryLayers);
         this.degradedLayers = sanitize(degradedLayers);
     }
 
     public Layout(final Vault vault, final Credentials credentials) {
+    	reservedByte = 0;
         primaryLayers = credentials.getCredentials().size();
         recoveryLayers = vault.getRecoverySegment().isPresent() ? primaryLayers - 1 : 0;
         degradedLayers = vault.getDegradedSegment().isPresent() ? primaryLayers - 2 : 0;
@@ -77,7 +81,7 @@ public class Layout {
     }
 
     public byte[] toByteArray() {
-        return new byte[] { 0, (byte) primaryLayers, (byte) recoveryLayers, (byte) degradedLayers};
+        return new byte[] { (byte) reservedByte, (byte) primaryLayers, (byte) recoveryLayers, (byte) degradedLayers};
     }
 
     private int sanitize(int value) {

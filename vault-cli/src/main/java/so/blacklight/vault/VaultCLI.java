@@ -85,7 +85,6 @@ public class VaultCLI {
                 if (maybeVault.isRight()) {
                     final Vault vault = maybeVault.right().value();
 
-                    // TODO list entries
                 } else {
                     final String message = "ERROR: Could not load vault: ";
                     System.out.println(message + maybeVault.left().value());
@@ -129,7 +128,6 @@ public class VaultCLI {
     public void showHelp(final Options.Action action) {
         if (action == Options.Action.DEFAULT_ACTION) {
             System.out.println("Usage: ");
-            //System.out.println("\tvault -c -v <vault> -k <keyfile>");
             System.out.println("    vault -create -v <vault> [OPTS]         Create new vault");
             System.out.println("    vault -list -v <vault> [OPTS]           List vault entries");
             System.out.println();
