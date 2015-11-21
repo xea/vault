@@ -15,10 +15,10 @@ public class PasswordEntry implements RecoverableEntry {
 
     private final String recoveryInfo;
 
-    private final EntryMetadata metadata;
+    private final Metadata metadata;
 
     public PasswordEntry(final String id, final String password) {
-        this(id, password, EntryMetadata.DEFAULT_TITLE);
+        this(id, password, Metadata.DEFAULT_TITLE);
     }
 
     public PasswordEntry(final String id, final String password, final String title) {
@@ -26,24 +26,24 @@ public class PasswordEntry implements RecoverableEntry {
     }
 
     public PasswordEntry(final String id, final String password, final String title, final String comment, final String recoveryInfo) {
-        this(id, password, title, comment, recoveryInfo, EntryMetadata.DEFAULT_EXPIRATION_TIME);
+        this(id, password, title, comment, recoveryInfo, Metadata.DEFAULT_EXPIRATION_TIME);
     }
 
     public PasswordEntry(final String id, final String password, final String title, final String comment, final String recoveryInfo, final Instant expirationTime) {
         this.id = id;
         this.password = password;
         this.recoveryInfo = recoveryInfo;
-        this.metadata = new EntryMetadata(title, comment, expirationTime);
+        this.metadata = new Metadata(title, comment, expirationTime);
     }
 
-    protected PasswordEntry(final PasswordEntry copy, final EntryMetadata metadata) {
+    protected PasswordEntry(final PasswordEntry copy, final Metadata metadata) {
         this.id = copy.id;
         this.password = copy.password;
         this.recoveryInfo = copy.recoveryInfo;
         this.metadata = metadata;
     }
 
-    protected PasswordEntry(final String id, final String password, final String recoveryInfo, final EntryMetadata metadata) {
+    protected PasswordEntry(final String id, final String password, final String recoveryInfo, final Metadata metadata) {
         this.id = id;
         this.password = password;
         this.recoveryInfo = recoveryInfo;
@@ -55,7 +55,7 @@ public class PasswordEntry implements RecoverableEntry {
     }
 
     public PasswordEntry setId(final String newId) {
-        final EntryMetadata newMetadata = metadata.setModifyTime(Instant.now());
+        final Metadata newMetadata = metadata.setModifyTime(Instant.now());
         return new PasswordEntry(newId, password, recoveryInfo, newMetadata);
     }
 
@@ -64,7 +64,7 @@ public class PasswordEntry implements RecoverableEntry {
     }
 
     public PasswordEntry setPassword(final String newPassword) {
-        final EntryMetadata newMetadata = metadata.setModifyTime(Instant.now());
+        final Metadata newMetadata = metadata.setModifyTime(Instant.now());
         return new PasswordEntry(id, newPassword, recoveryInfo, newMetadata);
     }
 
@@ -74,12 +74,12 @@ public class PasswordEntry implements RecoverableEntry {
     }
 
     public PasswordEntry setRecoveryInfo(final String newRecoveryInfo) {
-        final EntryMetadata newMetadata = metadata.setModifyTime(Instant.now());
+        final Metadata newMetadata = metadata.setModifyTime(Instant.now());
         return new PasswordEntry(id, password, newRecoveryInfo, newMetadata);
     }
 
     @Override
-    public EntryMetadata getMetadata() {
+    public Metadata getMetadata() {
         return metadata;
     }
 

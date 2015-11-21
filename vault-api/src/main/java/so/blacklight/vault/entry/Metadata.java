@@ -10,11 +10,12 @@ import java.time.Instant;
  * Note that this class is immutable, the setter methods return new instances of this class instead
  * of modifying the current instance.
  */
-public class EntryMetadata implements Serializable {
+public class Metadata implements Serializable {
 
-    public static final long serialVersionUID = 54402L;
 
-    public static final String DEFAULT_TITLE = "Untitled Entry";
+	private static final long serialVersionUID = -7717838248323617420L;
+
+	public static final String DEFAULT_TITLE = "Untitled Entry";
 
     public static final String DEFAULT_COMMENT = null;
 
@@ -36,7 +37,7 @@ public class EntryMetadata implements Serializable {
      *
      * @param title displayable title of this entry
      */
-    public EntryMetadata(final String title) {
+    public Metadata(final String title) {
         this(title, null);
     }
 
@@ -47,7 +48,7 @@ public class EntryMetadata implements Serializable {
      * @param title displayable title of this entry
      * @param comment displayable comment for this entry
      */
-    public EntryMetadata(final String title, final String comment) {
+    public Metadata(final String title, final String comment) {
         this(title, comment, DEFAULT_EXPIRATION_TIME);
     }
 
@@ -58,11 +59,11 @@ public class EntryMetadata implements Serializable {
      * @param comment displayable comment for this entry
      * @param expirationTime point in time when this entry is considered expired
      */
-    public EntryMetadata(final String title, final String comment, final Instant expirationTime) {
+    public Metadata(final String title, final String comment, final Instant expirationTime) {
         this(title, comment, expirationTime, Instant.now());
     }
 
-    private EntryMetadata(final String title, final String comment, final Instant expirationTime, final Instant modifyTime) {
+    private Metadata(final String title, final String comment, final Instant expirationTime, final Instant modifyTime) {
         createTime = Instant.now();
         this.modifyTime = modifyTime;
         this.comment = comment;
@@ -118,19 +119,19 @@ public class EntryMetadata implements Serializable {
         return expirationTime;
     }
 
-    public EntryMetadata setModifyTime(Instant newModifyTime) {
-        return new EntryMetadata(title, comment, newModifyTime);
+    public Metadata setModifyTime(Instant newModifyTime) {
+        return new Metadata(title, comment, newModifyTime);
     }
 
-    public EntryMetadata setComment(String newComment) {
-        return new EntryMetadata(title, newComment, expirationTime, Instant.now());
+    public Metadata setComment(String newComment) {
+        return new Metadata(title, newComment, expirationTime, Instant.now());
     }
 
-    public EntryMetadata setTitle(String title) {
-        return new EntryMetadata(title, comment, expirationTime, Instant.now());
+    public Metadata setTitle(String title) {
+        return new Metadata(title, comment, expirationTime, Instant.now());
     }
 
-    public EntryMetadata setExpirationTime(final Instant newExpirationTime) {
-        return new EntryMetadata(title, comment, newExpirationTime, Instant.now());
+    public Metadata setExpirationTime(final Instant newExpirationTime) {
+        return new Metadata(title, comment, newExpirationTime, Instant.now());
     }
 }

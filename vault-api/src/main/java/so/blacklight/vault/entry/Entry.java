@@ -13,6 +13,6 @@ public interface Entry extends Serializable {
      *
      * @return metadata
      */
-    EntryMetadata getMetadata();
+    Metadata getMetadata();
 
 }

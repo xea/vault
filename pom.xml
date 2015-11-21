@@ -11,6 +11,7 @@
         <module>vault-api</module>
         <module>vault-core</module>
         <module>vault-cli</module>
+        <module>vault-fx</module>
     </modules>
 
     <packaging>pom</packaging>

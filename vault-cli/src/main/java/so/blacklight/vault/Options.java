@@ -58,6 +58,16 @@ public class Options {
     }
 
     @Option
+    @ShortSwitch("ce")
+    @LongSwitch("create-entry")
+    @Toggle(false)
+    public void requestCreateEntry(boolean value) {
+        if (action == Action.DEFAULT_ACTION) {
+            action = Action.CREATE_ENTRY;
+        }
+    }
+
+    @Option
     @ShortSwitch("r")
     @LongSwitch("recovery")
     @Toggle(false)
@@ -133,20 +143,6 @@ public class Options {
         return authOptions;
     }
 
-    public boolean isValid() {
-        boolean valid = false;
-
-        if (action == Action.CREATE_VAULT) {
-            valid = true;
-        } else if (action == Action.LIST_ENTRIES) {
-            if (vaultFile.isPresent()) {
-                valid = true;
-            }
-        }
-
-        return valid;
-    }
-
     public boolean isGenerateRecovery() {
         return generateRecovery;
     }
@@ -155,12 +151,54 @@ public class Options {
         return generateDegraded;
     }
 
+    public Optional<String> isValid() {
+        boolean valid = false;
+
+        String errorMsg = null;
+
+        if (action == Action.CREATE_VAULT) {
+            if (!vaultFile.isPresent()) {
+                errorMsg = "No vault file was specified";
+            } else if (authOptions.size() == 0) {
+                errorMsg = "No encryption method was specified";
+            } else {
+                valid = true;
+            }
+        } else if (action == Action.CREATE_FOLDER) {
+            if (!alias.isPresent()) {
+                errorMsg = "Missing folder alias";
+            } else {
+                valid = true;
+            }
+        } else if (action == Action.CREATE_ENTRY) {
+            if (!alias.isPresent()) {
+                errorMsg = "Missing entry alias";
+            } else {
+                valid = true;
+            }
+        } else if (action == Action.LIST_ENTRIES) {
+            if (!vaultFile.isPresent()) {
+                errorMsg = "No vault file was specified";
+            } else {
+                valid = true;
+            }
+        }
+
+        if (valid) {
+            return Optional.empty();
+        } else {
+            return Optional.of(errorMsg);
+        }
+    }
+
     /**
      * Actions that the CLI program can perform
      */
     enum Action {
-        CREATE_VAULT,
         DEFAULT_ACTION,
+        CREATE_VAULT,
+        CREATE_FOLDER,
+        CREATE_ENTRY,
         LIST_ENTRIES
     }
 }

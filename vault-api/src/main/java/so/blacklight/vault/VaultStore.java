@@ -1,5 +1,6 @@
 package so.blacklight.vault;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import fj.data.Either;
 
 import java.io.File;
@@ -13,9 +14,9 @@ public interface VaultStore {
 
     byte[] MAGIC_BYTES = { 0, 116, 127, 113 };
 
-    void save(Vault vault, Credentials credentials, File vaultFile);
+    Either<String, Boolean> save(Vault vault, Credentials credentials, File vaultFile);
 
-    void save(Vault vault, Credentials credentials, OutputStream outputStream);
+    Either<String, Boolean> save(Vault vault, Credentials credentials, OutputStream outputStream);
 
     Either<String, Vault> load(Credentials credentials, File vaultFile);
 

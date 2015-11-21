@@ -12,26 +12,26 @@ public class FlatFolder implements Folder {
 
     public static final long serialVersionUID = 3889125L;
 
-    private final EntryMetadata metadata;
+    private final Metadata metadata;
 
     private final List<Entry> entries;
 
     public FlatFolder(final String name) {
-        this.metadata = new EntryMetadata(name);
+        this.metadata = new Metadata(name);
         this.entries = new CopyOnWriteArrayList<>();
     }
 
-    protected FlatFolder(final String name, final EntryMetadata metadata) {
+    protected FlatFolder(final String name, final Metadata metadata) {
         this.metadata = metadata.setModifyTime(Instant.now());
         this.entries = new CopyOnWriteArrayList<>();
     }
 
-    protected FlatFolder(final FlatFolder copy, final EntryMetadata metadata) {
+    protected FlatFolder(final FlatFolder copy, final Metadata metadata) {
         this.entries = new CopyOnWriteArrayList<>(copy.getEntries());
         this.metadata = metadata.setModifyTime(Instant.now());
     }
 
-    protected FlatFolder(final Collection<Entry> entries, final EntryMetadata metadata) {
+    protected FlatFolder(final Collection<Entry> entries, final Metadata metadata) {
         this.entries = new CopyOnWriteArrayList<>(entries);
         this.metadata = metadata.setModifyTime(Instant.now());
     }
@@ -55,7 +55,7 @@ public class FlatFolder implements Folder {
     }
 
     @Override
-    public EntryMetadata getMetadata() {
+    public Metadata getMetadata() {
         return metadata;
     }
 }

@@ -21,24 +21,30 @@ import static fj.data.List.list;
 public class StreamVaultStore implements VaultStore {
 
     @Override
-    public void save(Vault vault, Credentials credentials, File vaultFile) {
+    public Either<String, Boolean> save(Vault vault, Credentials credentials, File vaultFile) {
         if (!vaultFile.exists() || vaultFile.canWrite()) {
             try {
                 final FileOutputStream fos = new FileOutputStream(vaultFile);
 
-                save(vault, credentials, fos);
+                final Either<String, Boolean> result = save(vault, credentials, fos);
 
                 fos.close();
+
+                return result;
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
+                return Either.left(e.getMessage());
             } catch (IOException e) {
                 e.printStackTrace();
+                return Either.left(e.getMessage());
             }
         }
+
+        return Either.left("Vault file does already exist and is not writable");
     }
 
     @Override
-    public void save(Vault vault, Credentials credentials, OutputStream outputStream) {
+    public Either<String, Boolean> save(Vault vault, Credentials credentials, OutputStream outputStream) {
         try {
             final ByteArrayOutputStream safetyBuffer = new ByteArrayOutputStream();
             final VaultOutputStream vos = new VaultOutputStream(safetyBuffer);
@@ -49,8 +55,8 @@ public class StreamVaultStore implements VaultStore {
 
             final List<Either<String, List<VaultRecord>>> result = saveInternal(vault, credentials);
 
-            if (result.find(Either::isLeft).length() > 0) {
-                // TODO better error handling
+            if (result.find(Either::isLeft).isSome()) {
+                return Either.left(result.find(Either::isLeft).some().left().value());
             } else {
                 result.map(r -> r.right().value()).map(l -> l.foreach(r -> writeBlock(vos, r)));
             }
@@ -59,8 +65,11 @@ public class StreamVaultStore implements VaultStore {
 
             // All's fine if the end's fine
             outputStream.write(safetyBuffer.toByteArray());
+
+            return Either.right(true);
         } catch (IOException e) {
             e.printStackTrace();
+            return Either.left(e.getMessage());
         }
     }
 
