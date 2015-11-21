@@ -31,7 +31,7 @@ public class VaultInputStream extends DataInputStream {
         read(magicBytes);
 
         if (!Arrays.equals(magicBytes, VaultStore.MAGIC_BYTES)) {
-            throw new IOException("Stream is not a valid stream");
+            throw new IOException("Stream is not a valid stream (invalid magic bytes)");
         }
 
         layout = new Layout(in);
@@ -91,8 +91,14 @@ public class VaultInputStream extends DataInputStream {
         return 0;
     }
 
+    /**
+     * Attempt to read every available block from the input stream.
+     *
+     * Note: this implementation reads at most 255 blocks which is way beyond any reasonable value.
+     *
+     * @return list of read records
+     */
     public List<VaultRecord> readAll() {
-        // TODO improve this
         List<VaultRecord> records = list();
         try {
             int i = 255;
@@ -101,6 +107,7 @@ public class VaultInputStream extends DataInputStream {
                 records = records.cons(record);
             }
         } catch (final Exception e) {
+            // We'll eventually run into an exception when reaching the end of the block, so ignoring this.
         }
 
         return records;

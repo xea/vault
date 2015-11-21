@@ -103,7 +103,7 @@ public class StreamVaultStore implements VaultStore {
             if (unlocked.length() > 0) {
                 return unlocked.index(0);
             } else {
-                return Either.left("Sorry :(");
+                return Either.left("Couldn't decrypt vault with the given credentials");
             }
         } catch (IOException e) {
             return Either.left("Error during loading: " + e.getMessage());
@@ -159,7 +159,7 @@ public class StreamVaultStore implements VaultStore {
             }
         }
 
-        return Either.left("ERROR: No vault present");
+        return Either.left("ERROR: No vault is present");
     }
 
     private Either<String, VaultRecord> generateRecord(final Vault vault, List<EncryptionParameters> params) {
