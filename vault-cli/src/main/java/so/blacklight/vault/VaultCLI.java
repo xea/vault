@@ -109,10 +109,10 @@ public class VaultCLI {
 
                     vault.getEntries().add(newEntry);
                 } else {
-                    // TODO confirmation error
+                    error("Passwords are not the same");
                 }
             } else {
-                // TODO empty password error
+                error("Empty password");
             }
         });
     }
@@ -212,8 +212,8 @@ public class VaultCLI {
                 throw new VaultException("ERROR: " + e.getMessage());
             }
         } else {
-            final String message = "ERROR: Vault file doesn't exist or isn't readable: ";
-            System.out.println(message + vaultFile.getAbsolutePath());
+            final String message = "Vault file doesn't exist or isn't readable: " + vaultFile.getAbsolutePath();
+            error(message);
         }
     }
 
@@ -270,9 +270,9 @@ public class VaultCLI {
                 "    password"
             };
 
-            Arrays.asList(messages).forEach(System.out::println);
+            out(messages);
         } else {
-            System.out.println("HELP MESSAGE ABOUT: " + action.name());
+            out("HELP MESSAGE ABOUT: " + action.name());
         }
     }
 
@@ -288,23 +288,34 @@ public class VaultCLI {
                 if (maybePassword.isPresent()) {
                     credentials.add(new Password(maybePassword.get()));
                 } else {
-                    // TODO error
+                    error("Password encryption was selected but no password was provided");
                 }
             } else if ("key".equals(authOption)) {
                 if (console != null) {
-                    System.out.print("Enter path to key file: ");
+                    out("Enter path to key file: ");
                     final File keyFile = new File(console.readLine());
 
                     if (keyFile.exists()) {
                         final Path keyPath = keyFile.toPath();
                         final byte[] bytes = Files.readAllBytes(keyPath);
                         credentials.add(new PrivateKey(bytes));
+                    } else {
+                        error("The specified keyfile does not exist");
                     }
                 }
+            } else {
+                error("The selected authentication mode (" + authOption + ") is invalid, skipping");
             }
         }
 
         return credentials;
     }
 
+    protected void out(final String... messages) {
+        Arrays.asList(messages).forEach(System.out::println);
+    }
+
+    protected void error(final String... messages) {
+        Arrays.asList(messages).forEach(msg -> System.out.println("ERROR: " + msg));
+    }
 }

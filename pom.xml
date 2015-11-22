@@ -33,6 +33,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>so.blacklight</groupId>
+                <artifactId>vault-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.github.jankroken</groupId>
                 <artifactId>commandline</artifactId>
                 <version>${commandline.version}</version>

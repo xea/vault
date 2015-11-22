@@ -6,16 +6,18 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fj.data.Either;
-import so.blacklight.vault.Credentials;
-import so.blacklight.vault.Password;
-import so.blacklight.vault.Vault;
-import so.blacklight.vault.VaultSettings;
-import so.blacklight.vault.VaultStore;
+import so.blacklight.vault.*;
 
 public class StreamVaultStoreTest {
+
+    @BeforeClass
+    public static void setup() {
+        EncryptionParameters.N = 1024;
+    }
 
     @Test
     public void savedVaultsShouldBeLoadable() {

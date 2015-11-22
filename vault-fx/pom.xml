@@ -11,5 +11,11 @@
 
     <artifactId>vault-fx</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>so.blacklight</groupId>
+            <artifactId>vault-core</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>

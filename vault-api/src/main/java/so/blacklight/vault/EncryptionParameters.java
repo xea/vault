@@ -20,6 +20,7 @@ public class EncryptionParameters {
     private static final String RANDOM_ALG = "SHA1PRNG";
     public static final int IV_LENGTH = 16;
     public static final int SALT_LENGTH = 16;
+    public static int N = 16384;
 
     private byte[] iv;
 
@@ -136,7 +137,6 @@ public class EncryptionParameters {
     }
 
     private byte[] deriveKey(final byte[] password, final byte[] salt) {
-        int N = 16384;
         int r = 8;
         int p = 1;
         int derivedLength = 16;
