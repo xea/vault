@@ -71,10 +71,10 @@ public class VaultInputStream extends DataInputStream {
 
         if (idx == 0) {
             return plc;
-        } else if (rlc > 0 && idx < plc + rlc) {
-            return plc - 1;
-        } else if (dlc > 0 && idx >= (plc + rlc) && idx < (plc + rlc + dlc)) {
-            return plc - 2;
+        } else if (rlc > 0 && idx < plc + 1) {
+            return rlc;
+        } else if (dlc > 0) {
+            return dlc;
         }
 
         return 0;

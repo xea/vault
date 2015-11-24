@@ -70,7 +70,7 @@ public class Options {
     @Option
     @ShortSwitch("r")
     @LongSwitch("recovery")
-    @Toggle(false)
+    @Toggle(true)
     public void requestGenerateRecovery(boolean value) {
         this.generateRecovery = value;
     }
@@ -78,9 +78,19 @@ public class Options {
     @Option
     @ShortSwitch("d")
     @LongSwitch("degraded")
-    @Toggle(false)
+    @Toggle(true)
     public void requestGenerateDegraded(boolean value) {
         this.generateDegraded = value;
+    }
+
+    @Option
+    @ShortSwitch("i")
+    @LongSwitch("info")
+    @Toggle(false)
+    public void requestShowInfo(boolean value) {
+        if (action == Action.DEFAULT_ACTION) {
+            action = Action.SHOW_INFO;
+        }
     }
 
     public Action getAction() {
@@ -182,6 +192,12 @@ public class Options {
             } else {
                 valid = true;
             }
+        } else if (action == Action.SHOW_INFO) {
+            if (!vaultFile.isPresent()) {
+                errorMsg = "No vault file was specified";
+            } else {
+                valid = true;
+            }
         }
 
         if (valid) {
@@ -199,6 +215,7 @@ public class Options {
         CREATE_VAULT,
         CREATE_FOLDER,
         CREATE_ENTRY,
-        LIST_ENTRIES
+        LIST_ENTRIES,
+        SHOW_INFO
     }
 }

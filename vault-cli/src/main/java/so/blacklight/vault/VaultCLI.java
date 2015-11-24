@@ -12,9 +12,13 @@ import com.github.jankroken.commandline.CommandLineParser;
 import com.github.jankroken.commandline.OptionStyle;
 
 import fj.data.Either;
+import fj.data.List;
 import so.blacklight.vault.crypto.Password;
 import so.blacklight.vault.crypto.PrivateKey;
 import so.blacklight.vault.entry.*;
+import so.blacklight.vault.io.VaultInputStream;
+import so.blacklight.vault.io.VaultRecord;
+import so.blacklight.vault.store.Layout;
 import so.blacklight.vault.store.StreamVaultStore;
 
 /**
@@ -70,6 +74,9 @@ public class VaultCLI {
                     case LIST_ENTRIES:
                         listEntries(options);
                         break;
+                    case SHOW_INFO:
+                        showInfo(options);
+                        break;
                     case DEFAULT_ACTION:
                     default:
                         showHelp(options.getAction());
@@ -79,6 +86,39 @@ public class VaultCLI {
         } catch (final VaultException e) {
             System.out.println("Application error: " + e.getMessage());
         }
+    }
+
+    public void showInfo(Options options) throws VaultException {
+        System.out.println("SHOW INFO");
+
+        final File vaultFile = options.getVaultFile().get();
+
+        if (vaultFile.exists() && vaultFile.canRead()) {
+            try {
+                final FileInputStream fis = new FileInputStream(vaultFile);
+                final VaultInputStream vis = new VaultInputStream(fis);
+
+                final Layout layout = vis.getLayout();
+
+                out(String.format("Layout: %d %d %d", layout.getPrimaryLayers(), layout.getRecoveryLayers(), layout.getDegradedLayers()));
+
+                final List<VaultRecord> vaultRecords = vis.readAll();
+
+                out("Found " + vaultRecords.length() + " record(s)");
+
+                vaultRecords.forEach(record -> {
+                    out("Found record with " + record.getIvs().length + " IV(s) and " + record.getSalts().length + " salt(s) and block is " + record.getBlock().length + " bytes long");
+                });
+
+            } catch (FileNotFoundException e) {
+                error(e.getMessage());
+            } catch (IOException e) {
+                error(e.getMessage());
+            }
+        } else {
+            error("Can't open vault file " + vaultFile.getAbsolutePath());
+        }
+
     }
 
     public void listEntries(final Options options) throws VaultException {
@@ -256,6 +296,7 @@ public class VaultCLI {
                 "    vault -create -v <vault> [OPTS]                                 Create new vault",
                 "    vault -list -v <vault> [OPTS]                                   List vault entries",
                 "    vault -create-entry -a <alias> -t <TYPE> -v <vault> [OPTS]      Create a new vault entry",
+                "    vault -info -v <vault>                                          Show information about the selected vault",
                 "", "",
                 "  Possible OPTS are:",
                 "    -f <folder alias>      Specify the current folder",
@@ -287,7 +328,7 @@ public class VaultCLI {
             if ("pw".equals(authOption)) {
                 final Optional<char[]> maybePassword = askPassword("Enter input");
 
-                if (maybePassword.isPresent()) {
+                if (maybePassword.isPresent() && maybePassword.get().length > 0) {
                     credentials.add(new Password(maybePassword.get()));
                 } else {
                     error("Password encryption was selected but no password was provided");

@@ -22,8 +22,8 @@ public class CredentialsTest {
         c2.add(new Password(new String("repa").toCharArray()));
 
         for (int i = 0; i < c1.getCredentials().size(); i++) {
-            final Credential cl1 = c1.getCredentials().get(i);
-            final Credential cl2 = c2.getCredentials().get(i);
+            final Credential cl1 = (Credential) c1.getCredentials().toArray()[i];
+            final Credential cl2 = (Credential) c2.getCredentials().toArray()[i];
             assertArrayEquals(cl1.getBytes(), cl2.getBytes());
         }
     }
