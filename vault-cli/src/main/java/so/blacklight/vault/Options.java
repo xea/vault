@@ -136,7 +136,7 @@ public class Options {
     @LongSwitch("methods")
     @SingleArgument
     public void setAuthenticationMethod(String method) {
-        authOptions = Arrays.asList(method.split("[\\s]*,[\\s]*]"));
+        authOptions = Arrays.asList(method.split("[\\s]*,[\\s]*"));
     }
 
     public List<String> getAuthOptions() {
@@ -154,7 +154,7 @@ public class Options {
     public Optional<String> isValid() {
         boolean valid = false;
 
-        String errorMsg = null;
+        String errorMsg = "DEFAULT ERROR";
 
         if (action == Action.CREATE_VAULT) {
             if (!vaultFile.isPresent()) {

@@ -11,12 +11,14 @@ import org.junit.Test;
 
 import fj.data.Either;
 import so.blacklight.vault.*;
+import so.blacklight.vault.crypto.EncryptionParameter;
+import so.blacklight.vault.crypto.Password;
 
 public class StreamVaultStoreTest {
 
     @BeforeClass
     public static void setup() {
-        EncryptionParameters.N = 1024;
+        EncryptionParameter.N = 1024;
     }
 
     @Test

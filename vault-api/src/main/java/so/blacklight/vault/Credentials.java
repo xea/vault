@@ -1,8 +1,8 @@
 package so.blacklight.vault;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 
 /**
  * A collection of user-supplied credentials, such as passwords, private keys, etc. that
@@ -10,13 +10,32 @@ import java.util.List;
  */
 public class Credentials {
 
-    private List<Credential> credentials;
+    private Set<Credential> credentials;
 
     /**
      * Initialise an empty collection.
      */
     public Credentials() {
-        credentials = new ArrayList<>();
+        final Comparator<Credential> comparator = (c1, c2) -> {
+            final String HASH_ALGORITHM = "SHA-256";
+
+            try {
+                final MessageDigest md1 = MessageDigest.getInstance(HASH_ALGORITHM);
+                final MessageDigest md2 = MessageDigest.getInstance(HASH_ALGORITHM);
+
+                md1.update(c1.getBytes());
+                md2.update(c2.getBytes());
+
+                final String digest1 = new String(md1.digest());
+                final String digest2 = new String(md2.digest());
+
+                return digest1.compareTo(digest2);
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+            return 0;
+        };
+        credentials = new TreeSet<>(comparator);
     }
     
     /**
@@ -36,25 +55,18 @@ public class Credentials {
      * @return <code>true</code> if the item was added, otherwise <code>false</code>
      */
     public boolean add(final Credential credential) {
-        sortCredentials();
         return credentials.add(credential);
     }
 
     /**
-     * Return a sorted list of credentials.
+     * Return a sorted set of credentials.
      *
      * Please note that the sorting can be done arbitrarily as long as it's consistent.
      *
-     * @return sorted list of credentials
+     * @return sorted set of credentials
      */
-    public List<Credential> getCredentials() {
+    public Set<Credential> getCredentials() {
         return credentials;
     }
-    
-    private void sortCredentials() {
-        credentials.sort( (a, b) ->
-                (Integer.valueOf(a.hashCode()) .compareTo(Integer.valueOf(b.hashCode()))));
-    }
-
 
 }

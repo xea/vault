@@ -8,6 +8,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import so.blacklight.vault.*;
+import so.blacklight.vault.crypto.Password;
+import so.blacklight.vault.crypto.PrivateKey;
 import so.blacklight.vault.store.StreamVaultStore;
 
 import java.io.File;
@@ -97,7 +99,7 @@ public class AuthController implements Initializable {
                 Either<String, Vault> load = store.load(credentials, maybeVaultFile.get());
 
                 if (load.isRight()) {
-                    
+                    final Vault vault = load.right().value();
                 } else {
                     final Alert alert = new Alert(Alert.AlertType.ERROR, "Error during opening vault: " + load.left().value(), ButtonType.OK);
                     alert.show();

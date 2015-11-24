@@ -7,6 +7,9 @@ import fj.data.List;
 import fj.data.Option;
 import so.blacklight.vault.*;
 import so.blacklight.vault.collection.Tuple2;
+import so.blacklight.vault.crypto.Crypto;
+import so.blacklight.vault.crypto.CryptoImpl;
+import so.blacklight.vault.crypto.EncryptionParameter;
 import so.blacklight.vault.io.VaultInputStream;
 import so.blacklight.vault.io.VaultOutputStream;
 import so.blacklight.vault.io.VaultRecord;
@@ -18,6 +21,9 @@ import java.util.Optional;
 
 import static fj.data.List.list;
 
+/**
+ * A vault store that uses vault VaultInputStream and VaultOutputStream internally to load/save vault data
+ */
 public class StreamVaultStore implements VaultStore {
 
     @Override
@@ -130,12 +136,12 @@ public class StreamVaultStore implements VaultStore {
         );
 
         // Override time-consuming operations with trivial ones for those steps when we won't be encrypting anything
-        final List<F<List<Credential>, List<List<Credential>>>> ff = fv.map(f -> f.f(vault).isPresent()).zipWith(fs, (a, b) -> a ? b : b); //(l -> list()));
+        final List<F<List<Credential>, List<List<Credential>>>> ff = fv.map(f -> f.f(vault).isPresent()).zipWith(fs, (a, b) -> a ? b : l -> list());
 
         // for each vault record we generate new encryption parameters and then encrypt the records
         final List<Either<String, List<VaultRecord>>> map = ff.map(f ->
                 f.f(creds).map(list ->
-                        list.map(c -> new EncryptionParameters(c))))
+                        list.map(c -> new EncryptionParameter(c))))
                 .zipWith(fv.map(f ->
                         f.f(vault)), (l, v) -> new EncTuple(v, l))
                 .filter(t -> t.first().isPresent()).map(tuple -> generateRecords(tuple));
@@ -144,7 +150,7 @@ public class StreamVaultStore implements VaultStore {
     
     private Either<String, List<VaultRecord>> generateRecords(final EncTuple tuple) {
         final Optional<Vault> maybeVault = tuple.first();
-        final List<List<EncryptionParameters>> params = tuple.second();
+        final List<List<EncryptionParameter>> params = tuple.second();
 
         if (maybeVault.isPresent()) {
             final Vault currentVault = maybeVault.get();
@@ -162,15 +168,15 @@ public class StreamVaultStore implements VaultStore {
         return Either.left("ERROR: No vault is present");
     }
 
-    private Either<String, VaultRecord> generateRecord(final Vault vault, List<EncryptionParameters> params) {
+    private Either<String, VaultRecord> generateRecord(final Vault vault, List<EncryptionParameter> params) {
         final Crypto<Vault> crypto = new CryptoImpl<>();
         Either<String, byte[]> encrypt = crypto.encrypt(vault, params.toJavaList());
 
         if (encrypt.isRight()) {
             final VaultRecord record = new VaultRecord(encrypt.right().value());
 
-            record.addIvs(params.map(EncryptionParameters::getIv).toJavaList());
-            record.addSalts(params.map(EncryptionParameters::getSalt).toJavaList());
+            record.addIvs(params.map(EncryptionParameter::getIv).toJavaList());
+            record.addSalts(params.map(EncryptionParameter::getSalt).toJavaList());
 
             return Either.right(record);
         } else {
@@ -208,12 +214,13 @@ public class StreamVaultStore implements VaultStore {
             final byte[][] salts = r.getSalts();
 
             // we're leveraging a mutable collection here
-            final java.util.List<EncryptionParameters> params = new ArrayList<>();
+            final java.util.List<EncryptionParameter> params = new ArrayList<>();
 
             for (int i = 0; i < r.count(); i++) {
-                params.add(new EncryptionParameters(credentials.index(i), ivs[i], salts[i]));
+                params.add(new EncryptionParameter(credentials.index(i), ivs[i], salts[i]));
             }
 
+            // credentials are always sorted for encryption, here we manually reverse the order for decryption
             Collections.reverse(params);
 
             return crypto.decrypt(r.getBlock(), params);
@@ -225,9 +232,9 @@ public class StreamVaultStore implements VaultStore {
     /**
      * Blatant workaround/hack class for ensuring type safety where type erasure would make types difficult to infer
      */
-    private static class EncTuple extends Tuple2<Optional<Vault>, List<List<EncryptionParameters>>> {
+    private static class EncTuple extends Tuple2<Optional<Vault>, List<List<EncryptionParameter>>> {
 
-		public EncTuple(Optional<Vault> t, List<List<EncryptionParameters>> u) {
+		public EncTuple(Optional<Vault> t, List<List<EncryptionParameter>> u) {
 			super(t, u);
 		}
     	

@@ -1,6 +1,7 @@
-package so.blacklight.vault;
+package so.blacklight.vault.crypto;
 
 import com.lambdaworks.crypto.SCrypt;
+import so.blacklight.vault.Credential;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -14,12 +15,14 @@ import java.security.SecureRandom;
  *
  * Note: depending on the credential type, salt may not be used during key derivation
  */
-public class EncryptionParameters {
+public class EncryptionParameter {
 
     private static final String CRYPTO_ALG = "AES";
     private static final String RANDOM_ALG = "SHA1PRNG";
     public static final int IV_LENGTH = 16;
     public static final int SALT_LENGTH = 16;
+
+    // N holds the number of rounds for password-based key derivation
     public static int N = 16384;
 
     private byte[] iv;
@@ -34,7 +37,7 @@ public class EncryptionParameters {
      *
      * @param credentials credentials
      */
-    public EncryptionParameters(final Credential credentials) {
+    public EncryptionParameter(final Credential credentials) {
         iv = generateRandom(IV_LENGTH);
         salt = generateRandom(SALT_LENGTH);
         key = generateKey(credentials, salt);
@@ -47,7 +50,7 @@ public class EncryptionParameters {
      * @param iv initialising vector
      * @param salt password salt
      */
-    public EncryptionParameters(final Credential credentials, final byte[] iv, final byte[] salt) {
+    public EncryptionParameter(final Credential credentials, final byte[] iv, final byte[] salt) {
         this.iv = iv;
         this.salt = salt;
         this.key = generateKey(credentials, salt);
@@ -62,7 +65,7 @@ public class EncryptionParameters {
      *
      * @param key secret key bytes
      */
-    public EncryptionParameters(final byte[] key) {
+    public EncryptionParameter(final byte[] key) {
         this.key = new SecretKeySpec(key, CRYPTO_ALG);
         this.salt = generateRandom(SALT_LENGTH);
         this.iv = generateRandom(IV_LENGTH);
@@ -77,7 +80,7 @@ public class EncryptionParameters {
      * @param iv initialisation vector bytes
      * @param salt salt bytes
      */
-    public EncryptionParameters(final byte[] key, final byte[] iv, final byte[] salt) {
+    public EncryptionParameter(final byte[] key, final byte[] iv, final byte[] salt) {
         this.key = new SecretKeySpec(key, CRYPTO_ALG);
         this.salt = salt;
         this.iv = iv;
@@ -91,7 +94,7 @@ public class EncryptionParameters {
      *
      * @param password password characters
      */
-    public EncryptionParameters(final char[] password) {
+    public EncryptionParameter(final char[] password) {
         iv = generateRandom(IV_LENGTH);
         salt = generateRandom(SALT_LENGTH);
         key = new SecretKeySpec(deriveKey(password, salt), CRYPTO_ALG);
@@ -106,26 +109,41 @@ public class EncryptionParameters {
      * @param iv initialisation vector bytes
      * @param salt salt bytes
      */
-    public EncryptionParameters(final char[] password, final byte[] iv, final byte[] salt) {
+    public EncryptionParameter(final char[] password, final byte[] iv, final byte[] salt) {
         this.iv = iv;
         this.salt = salt;
         key = new SecretKeySpec(deriveKey(password, salt), CRYPTO_ALG);
     }
 
-    public EncryptionParameters(final SecretKey secretKey) {
+    public EncryptionParameter(final SecretKey secretKey) {
         key = secretKey;
         iv = generateRandom(IV_LENGTH);
         salt = generateRandom(SALT_LENGTH);
     }
 
+    /**
+     * Return the initialisation vector used with this encryption key
+     *
+     * @return initialisation vector
+     */
     public byte[] getIv() {
         return iv;
     }
 
+    /**
+     * Return the salt used with this encryption key.
+     *
+     * @return salt
+     */
     public byte[] getSalt() {
         return salt;
     }
 
+    /**
+     * Secret key used for encryption/decryption
+     *
+     * @return secret key
+     */
     public SecretKey getKey() {
         return key;
     }

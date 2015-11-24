@@ -12,6 +12,8 @@ import com.github.jankroken.commandline.CommandLineParser;
 import com.github.jankroken.commandline.OptionStyle;
 
 import fj.data.Either;
+import so.blacklight.vault.crypto.Password;
+import so.blacklight.vault.crypto.PrivateKey;
 import so.blacklight.vault.entry.*;
 import so.blacklight.vault.store.StreamVaultStore;
 
@@ -35,11 +37,11 @@ public class VaultCLI {
 
             return options;
         } catch (IllegalAccessException e) {
-            System.out.println("Illegal access exception: " + e.getMessage());
+            error("Illegal access exception: " + e.getMessage());
         } catch (InstantiationException e) {
-            System.out.println("Instantiation exception: " + e.getMessage());
+            error("Instantiation exception: " + e.getMessage());
         } catch (InvocationTargetException e) {
-            System.out.println("Invocation target exception: " + e.getMessage());
+            error("Invocation target exception: " + e.getMessage());
         }
 
         return new Options();
@@ -49,7 +51,7 @@ public class VaultCLI {
         try {
             final Optional<String> validationResult = options.isValid();
             if (validationResult.isPresent()) {
-                System.out.println("ERROR: " + validationResult.get());
+                error(validationResult.get());
                 showHelp(options.getAction());
             }
             else if (options.isHelpRequested()) {
@@ -151,7 +153,7 @@ public class VaultCLI {
     }
 
     protected Optional<char[]> askPassword(final String prompt) {
-        System.out.print(prompt);
+        System.out.print(prompt + ": ");
 
         if (System.console() != null) {
             final char[] password = System.console().readPassword();
@@ -205,8 +207,8 @@ public class VaultCLI {
                         store.save(vault, credentials, vaultFile);
                     }
                 } else {
-                    final String message = "ERROR: Could not load vault: ";
-                    System.out.println(message + maybeVault.left().value());
+                    final String message = "Could not load vault: ";
+                    error(message + maybeVault.left().value());
                 }
             } catch (final IOException e) {
                 throw new VaultException("ERROR: " + e.getMessage());
@@ -283,7 +285,7 @@ public class VaultCLI {
             final Console console = System.console();
 
             if ("pw".equals(authOption)) {
-                final Optional<char[]> maybePassword = askPassword("Enter password");
+                final Optional<char[]> maybePassword = askPassword("Enter input");
 
                 if (maybePassword.isPresent()) {
                     credentials.add(new Password(maybePassword.get()));

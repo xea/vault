@@ -1,7 +1,12 @@
-package so.blacklight.vault;
+package so.blacklight.vault.crypto;
+
+import so.blacklight.vault.Credential;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Represents a user password.
+ */
 public class Password implements Credential {
 
     private char[] password;

@@ -3,6 +3,7 @@ package so.blacklight.vault;
 import fj.data.Either;
 import org.junit.Before;
 import org.junit.Test;
+import so.blacklight.vault.crypto.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,7 +14,7 @@ import static org.junit.Assert.*;
 public class CryptoImplTest {
 
     private Crypto<String> crypto;
-    private List<EncryptionParameters> params;
+    private List<EncryptionParameter> params;
 
     @Before
     public void setup() {
@@ -23,7 +24,7 @@ public class CryptoImplTest {
 
     @Test
     public void testSinglePassPasswordEncryption() {
-        params.add(new EncryptionParameters(new Password("secret".toCharArray())));
+        params.add(new EncryptionParameter(new Password("secret".toCharArray())));
         Either<String, byte[]> encrypted = crypto.encrypt("secret", params);
 
         assertFalse(encrypted.isLeft());
@@ -38,8 +39,8 @@ public class CryptoImplTest {
 
     @Test
     public void testMultiPassPasswordEncryption() {
-        params.add(new EncryptionParameters(new Password("secret".toCharArray())));
-        params.add(new EncryptionParameters(new Password("password".toCharArray())));
+        params.add(new EncryptionParameter(new Password("secret".toCharArray())));
+        params.add(new EncryptionParameter(new Password("password".toCharArray())));
 
         Either<String, byte[]> encrypted = crypto.encrypt("secret", params);
         assertFalse(encrypted.isLeft());
@@ -55,7 +56,7 @@ public class CryptoImplTest {
 
     @Test
     public void testSinglePassKeyEncryption() {
-        params.add(new EncryptionParameters(new PrivateKey("aaaaaaaaaaaaaaaa".getBytes())));
+        params.add(new EncryptionParameter(new PrivateKey("aaaaaaaaaaaaaaaa".getBytes())));
 
         Either<String, byte[]> encrypted = crypto.encrypt("secret", params);
         assertTrue(encrypted.isRight());
@@ -70,8 +71,8 @@ public class CryptoImplTest {
 
     @Test
     public void testMultiPassKeyEncryption() {
-        params.add(new EncryptionParameters(new PrivateKey("1234567890abcdef".getBytes())));
-        params.add(new EncryptionParameters(new PrivateKey("fedcba0987654321".getBytes())));
+        params.add(new EncryptionParameter(new PrivateKey("1234567890abcdef".getBytes())));
+        params.add(new EncryptionParameter(new PrivateKey("fedcba0987654321".getBytes())));
 
         Either<String, byte[]> encrypted = crypto.encrypt("secret", params);
         assertTrue(encrypted.isRight());

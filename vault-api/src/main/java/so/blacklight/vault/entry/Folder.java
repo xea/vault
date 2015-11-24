@@ -1,8 +1,6 @@
 package so.blacklight.vault.entry;
 
 
-import so.blacklight.vault.entry.Entry;
-
 import java.util.Collection;
 import java.util.List;
 

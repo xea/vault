@@ -1,7 +1,7 @@
 package so.blacklight.vault.io;
 
 import fj.data.List;
-import so.blacklight.vault.EncryptionParameters;
+import so.blacklight.vault.crypto.EncryptionParameter;
 import so.blacklight.vault.VaultStore;
 import so.blacklight.vault.store.Layout;
 
@@ -43,8 +43,8 @@ public class VaultInputStream extends DataInputStream {
 
         if (c > 0) {
 
-            final byte[][] ivs = new byte[c][EncryptionParameters.IV_LENGTH];
-            final byte[][] salts = new byte[c][EncryptionParameters.SALT_LENGTH];
+            final byte[][] ivs = new byte[c][EncryptionParameter.IV_LENGTH];
+            final byte[][] salts = new byte[c][EncryptionParameter.SALT_LENGTH];
 
             for (int i = 0; i < c; i++) {
                 in.read(ivs[i]);

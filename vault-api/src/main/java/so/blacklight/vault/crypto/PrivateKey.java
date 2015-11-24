@@ -1,4 +1,6 @@
-package so.blacklight.vault;
+package so.blacklight.vault.crypto;
+
+import so.blacklight.vault.Credential;
 
 public class PrivateKey implements Credential {
 

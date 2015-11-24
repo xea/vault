@@ -1,11 +1,10 @@
-package so.blacklight.vault;
+package so.blacklight.vault.crypto;
 
 import fj.data.Either;
+import so.blacklight.vault.crypto.Crypto;
+import so.blacklight.vault.crypto.EncryptionParameter;
 
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
-import javax.crypto.NoSuchPaddingException;
+import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import java.io.*;
 import java.security.InvalidAlgorithmParameterException;
@@ -22,34 +21,74 @@ public class CryptoImpl<T extends Serializable> implements Crypto<T> {
 
     private final static String AES_CIPHER_NAME = "AES/CBC/PKCS5Padding";
     @Override
-    public Either<String, byte[]> encrypt(T secret, EncryptionParameters params) {
-        return encrypt(secret, Arrays.<EncryptionParameters>asList(params));
+    public Either<String, byte[]> encrypt(T secret, EncryptionParameter params) {
+        return encrypt(secret, Arrays.<EncryptionParameter>asList(params));
     }
 
     @Override
-    public Either<String, byte[]> encrypt(T secret, List<EncryptionParameters> params) {
+    public Either<String, byte[]> encrypt(T secret, List<EncryptionParameter> params) {
         return crypt(Cipher.ENCRYPT_MODE, secret, (T a, List<Cipher> b) -> handleEncrypt(a, b), params);
     }
 
     @Override
-    public Either<String, T> decrypt(byte[] encrypted, EncryptionParameters params) {
-        return decrypt(encrypted, Arrays.<EncryptionParameters>asList(params));
+    public Either<String, T> decrypt(byte[] encrypted, EncryptionParameter params) {
+        return decrypt(encrypted, Arrays.<EncryptionParameter>asList(params));
     }
 
     @Override
-    public Either<String, T> decrypt(byte[] encrypted, List<EncryptionParameters> params) {
+    public Either<String, T> decrypt(byte[] encrypted, List<EncryptionParameter> params) {
         return crypt(Cipher.DECRYPT_MODE, encrypted, (byte[] a, List<Cipher> b) -> handleDecrypt(a, b), params);
     }
 
-    protected <U, R> Either<String, R> crypt(int mode, U data, BiFunction<U, List<Cipher>, Either<String, R>> f, List<EncryptionParameters> params) {
-        List<Either<String, Cipher>> maybeCiphers = params.stream().map(p -> getCipher(mode, p))
+    @Override
+    public Either<String, SealedObject> seal(T secret, EncryptionParameter param) {
+        final Either<String, Cipher> maybeCipher = getCipher(Cipher.ENCRYPT_MODE, param);
+
+        if (maybeCipher.isRight()) {
+            final Cipher cipher = maybeCipher.right().value();
+
+            try {
+                final SealedObject sealedObject = new SealedObject(secret, cipher);
+
+                return Either.right(sealedObject);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Either.left(e.getMessage());
+            }
+        } else {
+            return Either.left(maybeCipher.left().value());
+        }
+    }
+
+    @Override
+    public Either<String, T> unseal(SealedObject sealedObject, EncryptionParameter param) {
+        final Either<String, Cipher> maybeCipher = getCipher(Cipher.DECRYPT_MODE, param);
+
+        if (maybeCipher.isRight()) {
+            final Cipher cipher = maybeCipher.right().value();
+
+            try {
+                final T secret = (T) sealedObject.getObject(cipher);
+
+                return Either.right(secret);
+            } catch (final Exception e) {
+                e.printStackTrace();
+                return Either.left(e.getMessage());
+            }
+        } else {
+            return Either.left(maybeCipher.left().value());
+        }
+    }
+
+    protected <U, R> Either<String, R> crypt(int mode, U data, BiFunction<U, List<Cipher>, Either<String, R>> f, List<EncryptionParameter> params) {
+        final List<Either<String, Cipher>> maybeCiphers = params.stream().map(p -> getCipher(mode, p))
                 .collect(Collectors.toList());
 
         if (maybeCiphers.stream().allMatch(e -> e.isRight())) {
-            List<Cipher> ciphers = maybeCiphers.stream().map(e -> e.right().value()).collect(Collectors.toList());
+            final List<Cipher> ciphers = maybeCiphers.stream().map(e -> e.right().value()).collect(Collectors.toList());
 
             try {
-                Either<String, R> value = f.apply(data, ciphers);
+                final Either<String, R> value = f.apply(data, ciphers);
                 return value;
             } catch (Throwable e) {
                 return Either.left(e.getMessage());
@@ -61,7 +100,7 @@ public class CryptoImpl<T extends Serializable> implements Crypto<T> {
         }
     }
 
-    protected Either<String, Cipher> getCipher(final int mode, final EncryptionParameters params) {
+    protected Either<String, Cipher> getCipher(final int mode, final EncryptionParameter params) {
         try {
             return Either.right(getAESCipher(mode, params));
         } catch (final Exception e) {
@@ -69,7 +108,7 @@ public class CryptoImpl<T extends Serializable> implements Crypto<T> {
         }
     }
 
-    private Cipher getAESCipher(final int mode, final EncryptionParameters params) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException {
+    private Cipher getAESCipher(final int mode, final EncryptionParameter params) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException {
         final Cipher cipher = Cipher.getInstance(AES_CIPHER_NAME);
         final IvParameterSpec ivSpec = new IvParameterSpec(params.getIv());
         cipher.init(mode, params.getKey(), ivSpec);
