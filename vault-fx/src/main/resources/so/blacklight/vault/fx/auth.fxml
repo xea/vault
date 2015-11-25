@@ -5,7 +5,6 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="240.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="so.blacklight.vault.fx.AuthController">
    <children>
       <HBox prefHeight="100.0" prefWidth="200.0">
@@ -44,7 +43,7 @@
                         <PasswordField fx:id="pwdOtp" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                         <HBox prefHeight="100.0" prefWidth="200.0" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
                            <children>
-                              <Label fx:id="lblPrivateKeyPath" text="c:\private.key" />
+                              <TextField />
                               <Button fx:id="btnBrowsePrivateKey" mnemonicParsing="false" onAction="#browsePrivateKey" text="Browse" />
                            </children>
                         </HBox>
@@ -54,7 +53,7 @@
             </VBox>
          </children>
       </HBox>
-      <HBox prefHeight="35.0" prefWidth="400.0">
+      <HBox prefHeight="35.0" prefWidth="400.0" spacing="5.0">
          <children>
             <Button fx:id="btnOk" mnemonicParsing="false" onAction="#openVault" text="Ok" />
             <Button fx:id="btnQuit" mnemonicParsing="false" text="Quit" />

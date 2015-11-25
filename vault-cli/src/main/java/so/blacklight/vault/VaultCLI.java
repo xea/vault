@@ -131,7 +131,23 @@ public class VaultCLI {
 
             vault.getEntries().forEach(e -> {
                 final Metadata m = e.getMetadata();
-                System.out.println(String.format("%s %s", m.getTitle(), m.getComment()));
+
+                final String line;
+
+                if (e instanceof Folder) {
+                    final Folder f = (Folder) e;
+                    line = String.format("FOLDER: %s", f.getMetadata().getTitle());
+                } else if (e instanceof SecretEntry) {
+                    final SecretEntry se = (SecretEntry) e;
+                    line = String.format("SECRET: %s / %s", se.getMetadata().getTitle(), se.getRecoveryInfo());
+                } else if (e instanceof PasswordEntry) {
+                    final PasswordEntry pe = (PasswordEntry) e;
+                    line = String.format("PASSWORD: %s / %s / %s", pe.getMetadata().getTitle(), pe.getId(), pe.getRecoveryInfo());
+                } else {
+                    line = "Unknown entry";
+                }
+
+                out(line);
             });
         });
     }

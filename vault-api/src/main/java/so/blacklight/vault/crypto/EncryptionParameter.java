@@ -7,6 +7,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
@@ -29,7 +30,7 @@ public class EncryptionParameter {
 
     private byte[] salt;
 
-    private SecretKey key;
+    private Key key;
 
     /**
      * Initialise a new parameter object with the given credentials and random
@@ -144,7 +145,7 @@ public class EncryptionParameter {
      *
      * @return secret key
      */
-    public SecretKey getKey() {
+    public Key getKey() {
         return key;
     }
 

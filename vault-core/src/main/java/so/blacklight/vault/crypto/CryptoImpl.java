@@ -20,6 +20,7 @@ public class CryptoImpl<T extends Serializable> implements Crypto<T> {
     private final static String DEFAULT_ERROR = "Error :(";
 
     private final static String AES_CIPHER_NAME = "AES/CBC/PKCS5Padding";
+    private final static String RSA_CIPHER_NAME = "RSA";
     @Override
     public Either<String, byte[]> encrypt(T secret, EncryptionParameter params) {
         return encrypt(secret, Arrays.<EncryptionParameter>asList(params));
@@ -112,6 +113,13 @@ public class CryptoImpl<T extends Serializable> implements Crypto<T> {
         final Cipher cipher = Cipher.getInstance(AES_CIPHER_NAME);
         final IvParameterSpec ivSpec = new IvParameterSpec(params.getIv());
         cipher.init(mode, params.getKey(), ivSpec);
+
+        return cipher;
+    }
+
+    private Cipher getRSACipher(final int mode, final EncryptionParameter param) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
+        final Cipher cipher = Cipher.getInstance(RSA_CIPHER_NAME);
+        cipher.init(mode, param.getKey());
 
         return cipher;
     }

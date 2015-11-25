@@ -27,7 +27,7 @@ public class AuthController implements Initializable {
     private Label lblVaultPath;
 
     @FXML
-    private Label lblPrivateKeyPath;
+    private TextField txtPrivateKey;
 
     @FXML
     private Button btnBrowseVault;
@@ -64,7 +64,7 @@ public class AuthController implements Initializable {
                 new ExtensionFilter("Vault Files", "*.vlt"),
                 new ExtensionFilter("All Files", "*.*"));
 
-        File selectedFile = fileChooser.showOpenDialog(btnHelp.getScene().getWindow());
+        File selectedFile = fileChooser.showOpenDialog(btnOk.getScene().getWindow());
 
         if (selectedFile != null) {
             maybeVaultFile = Optional.of(selectedFile);
@@ -83,7 +83,7 @@ public class AuthController implements Initializable {
 
         if (selectedFile != null) {
             maybePrivateKeyFile = Optional.of(selectedFile);
-            lblPrivateKeyPath.setText(selectedFile.getAbsolutePath());
+            txtPrivateKey.setText(selectedFile.getAbsolutePath());
         }
     }
 
