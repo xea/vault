@@ -158,12 +158,14 @@ public class VaultCLI {
         doWriteAction(options, vault -> {
             final String title = askInput("Title");
             final String userId = askInput("User id");
+            final String recovery = askInput("Recovery info (optional)");
+            final String comment = askInput("Comment (optional)");
             final Optional<char[]> maybePassword = askPassword("Password");
             final Optional<char[]> maybePasswordConfirm = askPassword("Password again");
 
             if (maybePassword.isPresent() && maybePasswordConfirm.isPresent()) {
                 if (Arrays.equals(maybePassword.get(), maybePasswordConfirm.get())) {
-                    final Entry newEntry = new PasswordEntry(userId, maybePassword.toString(), title);
+                    final Entry newEntry = new PasswordEntry(userId, maybePassword.toString(), title, comment, recovery);
 
                     vault.getEntries().add(newEntry);
                 } else {
@@ -294,8 +296,6 @@ public class VaultCLI {
                 final Credentials credentials = buildCredentials(options);
                 final VaultSettings settings = new VaultSettings(options.isGenerateRecovery(), options.isGenerateDegraded());
                 final Vault vault = new Vault(settings);
-                final Entry testEntry = new PasswordEntry("test id", "test password", "test alias", "test comment", "test recovery");
-                vault.getEntries().add(testEntry);
                 final VaultStore vaultStore = new StreamVaultStore();
 
                 vaultStore.save(vault, credentials, vaultFile);
@@ -342,7 +342,7 @@ public class VaultCLI {
             final Console console = System.console();
 
             if ("pw".equals(authOption)) {
-                final Optional<char[]> maybePassword = askPassword("Enter input");
+                final Optional<char[]> maybePassword = askPassword("Enter password");
 
                 if (maybePassword.isPresent() && maybePassword.get().length > 0) {
                     credentials.add(new Password(maybePassword.get()));

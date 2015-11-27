@@ -18,4 +18,6 @@ public interface RecoverableEntry extends Entry {
      * @return recovery information
      */
     String getRecoveryInfo();
+
+    RecoverableEntry setRecoveryInfo(String recoveryInfo);
 }
