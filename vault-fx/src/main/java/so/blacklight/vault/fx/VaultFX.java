@@ -14,11 +14,12 @@ public class VaultFX extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("auth.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("welcome.fxml"));
 
-        Scene scene = new Scene(root, 400, 240);
+        Scene scene = new Scene(root, 640, 400);
 
-        primaryStage.setTitle("Open vault");
+        primaryStage.setTitle("Welcome to Vault");
+        primaryStage.setResizable(false);
         primaryStage.setScene(scene);
         primaryStage.show();
     }

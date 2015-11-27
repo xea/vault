@@ -58,18 +58,6 @@ public class AuthController implements Initializable {
     private Optional<File> maybePrivateKeyFile = Optional.empty();
 
     public void browseVaultFile(final ActionEvent event) {
-        final FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open vault file");
-        fileChooser.getExtensionFilters().addAll(
-                new ExtensionFilter("Vault Files", "*.vlt"),
-                new ExtensionFilter("All Files", "*.*"));
-
-        File selectedFile = fileChooser.showOpenDialog(btnOk.getScene().getWindow());
-
-        if (selectedFile != null) {
-            maybeVaultFile = Optional.of(selectedFile);
-            lblVaultPath.setText(selectedFile.getAbsolutePath());
-        }
     }
 
     public void browsePrivateKey(final ActionEvent event) {
