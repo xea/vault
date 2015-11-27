@@ -2,6 +2,9 @@ package so.blacklight.vault;
 
 import java.io.Serializable;
 
+/**
+ * Represents the possible configuration settings of a vault object.
+ */
 public class VaultSettings implements Serializable {
 
 	private static final long serialVersionUID = -6893359789683865895L;

@@ -13,6 +13,10 @@ import java.util.UUID;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+/**
+ * Database for private, confidential or secret information such as passwords, private keys, etc.
+ *
+ */
 public class Vault implements Serializable {
 
     public static final long serialVersionUID = -7671254481L;
@@ -46,6 +50,10 @@ public class Vault implements Serializable {
         settings = otherVault.settings;
     }
 
+    /**
+     * Indicates if this vault is writable.
+     * @return <code>true</code> if the current vault is writable, otherwise <code>false</code>
+     */
     public boolean isWritable() {
         return masterCopy;
     }
@@ -70,16 +78,31 @@ public class Vault implements Serializable {
         }
     }
 
+    /**
+     * Return the entries in the current vault
+     *
+     * @return list of entries
+     */
     public List<Entry> getEntries() {
         return entries;
     }
 
+    /**
+     * Return a recovery version of the current vault.
+     *
+     * @return recovery vault
+     */
     protected Vault generateRecovery() {
         final Vault recoveryVault = new Vault(this, this::stripRecovery);
 
         return recoveryVault;
     }
 
+    /**
+     * Return a degraded version of the current vault.
+     *
+     * @return degraded vault
+     */
     protected Vault generateDegraded() {
         final Vault degradedVault = new Vault(this, this::stripDegraded);
 
@@ -129,6 +152,5 @@ public class Vault implements Serializable {
 
         return collect;
     }
-
 
 }
