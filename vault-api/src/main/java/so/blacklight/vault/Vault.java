@@ -82,7 +82,7 @@ public class Vault implements Serializable {
 
     protected Vault generateDegraded() {
         final Vault degradedVault = new Vault(this, this::stripDegraded);
-        
+
         return degradedVault;
     }
 
