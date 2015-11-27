@@ -33,8 +33,10 @@ public class Credentials {
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
             }
+
             return 0;
         };
+
         credentials = new TreeSet<>(comparator);
     }
     
