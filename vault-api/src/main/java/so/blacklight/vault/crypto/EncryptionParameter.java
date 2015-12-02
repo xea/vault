@@ -10,6 +10,7 @@ import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.PKCS8EncodedKeySpec;
 
 /**
  * Encapsulates the information necessary to encrypt/decrypt an object.
@@ -116,8 +117,8 @@ public class EncryptionParameter {
         key = new SecretKeySpec(deriveKey(password, salt), CRYPTO_ALG);
     }
 
-    public EncryptionParameter(final SecretKey secretKey) {
-        key = secretKey;
+    public EncryptionParameter(final Key key) {
+        this.key = key;
         iv = generateRandom(IV_LENGTH);
         salt = generateRandom(SALT_LENGTH);
     }
@@ -190,11 +191,15 @@ public class EncryptionParameter {
         random.nextBytes(bytes);
     }
 
-    private SecretKey generateKey(Credential credentials, byte[] salt) {
-        final SecretKey secretKey;
+    private Key generateKey(Credential credentials, byte[] salt) {
+        final Key secretKey;
 
         if (credentials.isUserInput()) {
             secretKey = new SecretKeySpec(deriveKey(credentials.getBytes(), salt), CRYPTO_ALG);
+        } else if (credentials instanceof RSAPrivateKey) {
+            secretKey = new SecretKeySpec(credentials.getBytes(), "RSA");
+        } else if (credentials instanceof RSAPublicKey) {
+            secretKey = new SecretKeySpec(credentials.getBytes(), "RSA");
         } else {
             secretKey = new SecretKeySpec(credentials.getBytes(), CRYPTO_ALG);
         }

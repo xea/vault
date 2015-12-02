@@ -103,7 +103,13 @@ public class CryptoImpl<T extends Serializable> implements Crypto<T> {
 
     protected Either<String, Cipher> getCipher(final int mode, final EncryptionParameter params) {
         try {
-            return Either.right(getAESCipher(mode, params));
+            if ("AES".equals(params.getKey().getAlgorithm())) {
+                return Either.right(getAESCipher(mode, params));
+            } else if ("RSA".equals(params.getKey().getAlgorithm())) {
+                return Either.right(getRSACipher(mode, params));
+            } else {
+                return Either.left("Unsupported algorithm: " + params.getKey().getAlgorithm());
+            }
         } catch (final Exception e) {
             return Either.left(e.getMessage());
         }

@@ -56,7 +56,7 @@ public class CryptoImplTest {
 
     @Test
     public void testSinglePassKeyEncryption() {
-        params.add(new EncryptionParameter(new PrivateKey("aaaaaaaaaaaaaaaa".getBytes())));
+        params.add(new EncryptionParameter(new AESKey("aaaaaaaaaaaaaaaa".getBytes())));
 
         Either<String, byte[]> encrypted = crypto.encrypt("secret", params);
         assertTrue(encrypted.isRight());
@@ -71,8 +71,8 @@ public class CryptoImplTest {
 
     @Test
     public void testMultiPassKeyEncryption() {
-        params.add(new EncryptionParameter(new PrivateKey("1234567890abcdef".getBytes())));
-        params.add(new EncryptionParameter(new PrivateKey("fedcba0987654321".getBytes())));
+        params.add(new EncryptionParameter(new AESKey("1234567890abcdef".getBytes())));
+        params.add(new EncryptionParameter(new AESKey("fedcba0987654321".getBytes())));
 
         Either<String, byte[]> encrypted = crypto.encrypt("secret", params);
         assertTrue(encrypted.isRight());

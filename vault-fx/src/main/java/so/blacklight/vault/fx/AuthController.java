@@ -9,7 +9,7 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import so.blacklight.vault.*;
 import so.blacklight.vault.crypto.Password;
-import so.blacklight.vault.crypto.PrivateKey;
+import so.blacklight.vault.crypto.AESKey;
 import so.blacklight.vault.store.StreamVaultStore;
 
 import java.io.File;
@@ -82,7 +82,7 @@ public class AuthController implements Initializable {
 
                 final Credentials credentials = new Credentials();
                 credentials.add(new Password(pwdPassword.getText().toCharArray()));
-                credentials.add(new PrivateKey(Files.readAllBytes(maybeVaultFile.get().toPath())));
+                credentials.add(new AESKey(Files.readAllBytes(maybeVaultFile.get().toPath())));
 
                 Either<String, Vault> load = store.load(credentials, maybeVaultFile.get());
 

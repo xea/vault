@@ -21,6 +21,8 @@ public class Options {
 
     private Optional<File> vaultFile = Optional.empty();
 
+    private Optional<String> keyType = Optional.empty();
+
     private Optional<String> alias = Optional.empty();
 
     private List<String> authOptions = new ArrayList<>();
@@ -42,9 +44,7 @@ public class Options {
     @LongSwitch("list")
     @Toggle(false)
     public void requestListEntries(boolean value) {
-        if (action == Action.DEFAULT_ACTION) {
-            action = Action.LIST_ENTRIES;
-        }
+        overrideDefaultAction(Action.LIST_ENTRIES);
     }
 
     @Option
@@ -52,9 +52,7 @@ public class Options {
     @LongSwitch("create")
     @Toggle(false)
     public void requestCreateVault(boolean value) {
-        if (action == Action.DEFAULT_ACTION) {
-            action = Action.CREATE_VAULT;
-        }
+        overrideDefaultAction(Action.CREATE_VAULT);
     }
 
     @Option
@@ -62,10 +60,34 @@ public class Options {
     @LongSwitch("create-entry")
     @Toggle(false)
     public void requestCreateEntry(boolean value) {
-        if (action == Action.DEFAULT_ACTION) {
-            action = Action.CREATE_ENTRY;
-        }
+        overrideDefaultAction(Action.CREATE_ENTRY);
     }
+
+    @Option
+    @ShortSwitch("s")
+    @LongSwitch("show-entry")
+    @Toggle(false)
+    public void requestShowEntry(boolean value) {
+        overrideDefaultAction(Action.SHOW_ENTRY);
+    }
+
+    @Option
+    @ShortSwitch("i")
+    @LongSwitch("info")
+    @Toggle(false)
+    public void requestShowInfo(boolean value) {
+        overrideDefaultAction(Action.SHOW_INFO);
+    }
+
+    @Option
+    @ShortSwitch("g")
+    @LongSwitch("gen-key")
+    @SingleArgument
+    public void requestGenerateKey(final String keyType) {
+        overrideDefaultAction(Action.GENERATE_KEY);
+        this.keyType = Optional.of(keyType);
+    }
+
 
     @Option
     @ShortSwitch("r")
@@ -83,16 +105,6 @@ public class Options {
         this.generateDegraded = value;
     }
 
-    @Option
-    @ShortSwitch("i")
-    @LongSwitch("info")
-    @Toggle(false)
-    public void requestShowInfo(boolean value) {
-        if (action == Action.DEFAULT_ACTION) {
-            action = Action.SHOW_INFO;
-        }
-    }
-
     public Action getAction() {
         return action;
     }
@@ -103,6 +115,10 @@ public class Options {
 
     public Optional<File> getKeyFile() {
         return keyFile;
+    }
+
+    public Optional<String> getKeyType() {
+        return keyType;
     }
 
     @Option
@@ -192,9 +208,21 @@ public class Options {
             } else {
                 valid = true;
             }
+        } else if (action == Action.SHOW_ENTRY) {
+            if (!alias.isPresent()) {
+                errorMsg = "Missing entry alias";
+            } else {
+                valid = true;
+            }
         } else if (action == Action.SHOW_INFO) {
             if (!vaultFile.isPresent()) {
                 errorMsg = "No vault file was specified";
+            } else {
+                valid = true;
+            }
+        } else if (action == Action.GENERATE_KEY) {
+            if (!keyType.isPresent()) {
+                errorMsg = "A key type must be specified";
             } else {
                 valid = true;
             }
@@ -207,6 +235,16 @@ public class Options {
         }
     }
 
+    private boolean overrideDefaultAction(Action action) {
+        if (this.action == Action.DEFAULT_ACTION) {
+            this.action = action;
+
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * Actions that the CLI program can perform
      */
@@ -216,6 +254,8 @@ public class Options {
         CREATE_FOLDER,
         CREATE_ENTRY,
         LIST_ENTRIES,
-        SHOW_INFO
+        SHOW_ENTRY,
+        SHOW_INFO,
+        GENERATE_KEY
     }
 }

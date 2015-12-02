@@ -18,22 +18,22 @@ public class PasswordEntry implements RecoverableEntry {
     private final Metadata metadata;
 
     public PasswordEntry(final String id, final String password) {
-        this(id, password, Metadata.DEFAULT_TITLE);
+        this(id, password, Metadata.DEFAULT_ALIAS);
     }
 
-    public PasswordEntry(final String id, final String password, final String title) {
-        this(id, password, title, null, RecoverableEntry.DEFAULT_RECOVERY_INFO);
+    public PasswordEntry(final String id, final String password, final String alias) {
+        this(id, password, alias, null, RecoverableEntry.DEFAULT_RECOVERY_INFO);
     }
 
-    public PasswordEntry(final String id, final String password, final String title, final String comment, final String recoveryInfo) {
-        this(id, password, title, comment, recoveryInfo, Metadata.DEFAULT_EXPIRATION_TIME);
+    public PasswordEntry(final String id, final String password, final String alias, final String comment, final String recoveryInfo) {
+        this(id, password, alias, comment, recoveryInfo, Metadata.DEFAULT_EXPIRATION_TIME);
     }
 
-    public PasswordEntry(final String id, final String password, final String title, final String comment, final String recoveryInfo, final Instant expirationTime) {
+    public PasswordEntry(final String id, final String password, final String alias, final String comment, final String recoveryInfo, final Instant expirationTime) {
         this.id = id;
         this.password = password;
         this.recoveryInfo = recoveryInfo;
-        this.metadata = new Metadata(title, comment, expirationTime);
+        this.metadata = new Metadata(alias, comment, expirationTime);
     }
 
     protected PasswordEntry(final PasswordEntry copy, final Metadata metadata) {

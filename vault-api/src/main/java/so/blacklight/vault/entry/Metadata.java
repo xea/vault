@@ -15,7 +15,7 @@ public class Metadata implements Serializable {
 
 	private static final long serialVersionUID = -7717838248323617420L;
 
-	public static final String DEFAULT_TITLE = "Untitled Entry";
+	public static final String DEFAULT_ALIAS = "Untitled Entry";
 
     public static final String DEFAULT_COMMENT = null;
 
@@ -29,56 +29,56 @@ public class Metadata implements Serializable {
 
     private final String comment;
 
-    private final String title;
+    private final String alias;
 
     /**
-     * Create a new metadata object with a title only. Every other fields are set to reasonable defaults.
+     * Create a new metadata object with a alias only. Every other fields are set to reasonable defaults.
      * Note: this entry will never expire.
      *
-     * @param title displayable title of this entry
+     * @param alias displayable alias of this entry
      */
-    public Metadata(final String title) {
-        this(title, null);
+    public Metadata(final String alias) {
+        this(alias, null);
     }
 
     /**
-     * Create a new metadata object with a title and comment but without an expiration date so this
+     * Create a new metadata object with a alias and comment but without an expiration date so this
      * entry will never expire.
      *
-     * @param title displayable title of this entry
+     * @param alias displayable alias of this entry
      * @param comment displayable comment for this entry
      */
-    public Metadata(final String title, final String comment) {
-        this(title, comment, DEFAULT_EXPIRATION_TIME);
+    public Metadata(final String alias, final String comment) {
+        this(alias, comment, DEFAULT_EXPIRATION_TIME);
     }
 
     /**
-     * Create a new metadata object with the specified title, comment and expiration time.
+     * Create a new metadata object with the specified alias, comment and expiration time.
      *
-     * @param title displayable title of this entry
+     * @param alias displayable alias of this entry
      * @param comment displayable comment for this entry
      * @param expirationTime point in time when this entry is considered expired
      */
-    public Metadata(final String title, final String comment, final Instant expirationTime) {
-        this(title, comment, expirationTime, Instant.now());
+    public Metadata(final String alias, final String comment, final Instant expirationTime) {
+        this(alias, comment, expirationTime, Instant.now());
     }
 
-    private Metadata(final String title, final String comment, final Instant expirationTime, final Instant modifyTime) {
+    private Metadata(final String alias, final String comment, final Instant expirationTime, final Instant modifyTime) {
         createTime = Instant.now();
         this.modifyTime = modifyTime;
         this.comment = comment;
-        this.title = title;
+        this.alias = alias;
         this.expirationTime = expirationTime;
     }
 
     /**
-     * Return the title of this entry. Titles should be user-readable string intended
+     * Return the alias of this entry. Aliases should be user-readable string intended
      * for displaying to the user.
      *
-     * @return entry title
+     * @return entry alias
      */
-    public String getTitle() {
-        return title;
+    public String getAlias() {
+        return alias;
     }
 
 
@@ -120,18 +120,18 @@ public class Metadata implements Serializable {
     }
 
     public Metadata setModifyTime(Instant newModifyTime) {
-        return new Metadata(title, comment, newModifyTime);
+        return new Metadata(alias, comment, newModifyTime);
     }
 
     public Metadata setComment(String newComment) {
-        return new Metadata(title, newComment, expirationTime, Instant.now());
+        return new Metadata(alias, newComment, expirationTime, Instant.now());
     }
 
-    public Metadata setTitle(String title) {
-        return new Metadata(title, comment, expirationTime, Instant.now());
+    public Metadata setAlias(String alias) {
+        return new Metadata(alias, comment, expirationTime, Instant.now());
     }
 
     public Metadata setExpirationTime(final Instant newExpirationTime) {
-        return new Metadata(title, comment, newExpirationTime, Instant.now());
+        return new Metadata(alias, comment, newExpirationTime, Instant.now());
     }
 }

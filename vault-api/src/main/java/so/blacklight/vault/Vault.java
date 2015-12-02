@@ -153,4 +153,19 @@ public class Vault implements Serializable {
         return collect;
     }
 
+    public Optional<Entry> findAlias(String alias) {
+        return findAlias(alias, entries);
+    }
+
+    protected Optional<Entry> findAlias(final String alias, final List<Entry> entryList) {
+        final Optional<Entry> directResult = entryList.parallelStream().filter(e -> e.getMetadata().getAlias().equals(alias)).findFirst();
+
+        if (!directResult.isPresent()) {
+            return entryList.parallelStream().filter(e ->
+                    e instanceof  Folder).filter(e ->
+                    findAlias(alias, ((Folder) e).getEntries()).isPresent()).findFirst();
+        } else {
+            return directResult;
+        }
+    }
 }

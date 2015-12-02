@@ -4,6 +4,9 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -14,12 +17,17 @@ import com.github.jankroken.commandline.OptionStyle;
 import fj.data.Either;
 import fj.data.List;
 import so.blacklight.vault.crypto.Password;
-import so.blacklight.vault.crypto.PrivateKey;
+import so.blacklight.vault.crypto.AESKey;
+import so.blacklight.vault.crypto.RSAPrivateKey;
+import so.blacklight.vault.crypto.RSAPublicKey;
 import so.blacklight.vault.entry.*;
 import so.blacklight.vault.io.VaultInputStream;
 import so.blacklight.vault.io.VaultRecord;
 import so.blacklight.vault.store.Layout;
 import so.blacklight.vault.store.StreamVaultStore;
+
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
 /**
  * Main executable class, intended to be called from the command line.
@@ -74,8 +82,14 @@ public class VaultCLI {
                     case LIST_ENTRIES:
                         listEntries(options);
                         break;
+                    case SHOW_ENTRY:
+                        showEntry(options);
+                        break;
                     case SHOW_INFO:
                         showInfo(options);
+                        break;
+                    case GENERATE_KEY:
+                        generateKey(options);
                         break;
                     case DEFAULT_ACTION:
                     default:
@@ -86,6 +100,21 @@ public class VaultCLI {
         } catch (final VaultException e) {
             System.out.println("Application error: " + e.getMessage());
         }
+    }
+
+    public void showEntry(final Options options) throws VaultException {
+        final String alias = options.getAlias().get();
+
+        doAction(options, vault -> {
+            final Optional<Entry> result = vault.findAlias(alias);
+
+            if (result.isPresent()) {
+                final EntryPrinter printer = new EntryPrinter();
+                printer.print(result.get());
+            } else {
+                error("Can't find selected entry");
+            }
+        });
     }
 
     public void showInfo(Options options) throws VaultException {
@@ -136,13 +165,13 @@ public class VaultCLI {
 
                 if (e instanceof Folder) {
                     final Folder f = (Folder) e;
-                    line = String.format("FOLDER: %s", f.getMetadata().getTitle());
+                    line = String.format("FOLDER: %s", m.getAlias());
                 } else if (e instanceof SecretEntry) {
                     final SecretEntry se = (SecretEntry) e;
-                    line = String.format("SECRET: %s / %s", se.getMetadata().getTitle(), se.getRecoveryInfo());
+                    line = String.format("SECRET: %s / %s / %s", m.getAlias(), se.getRecoveryInfo(), m.getExpirationTime().toString());
                 } else if (e instanceof PasswordEntry) {
                     final PasswordEntry pe = (PasswordEntry) e;
-                    line = String.format("PASSWORD: %s / %s / %s", pe.getMetadata().getTitle(), pe.getId(), pe.getRecoveryInfo());
+                    line = String.format("PASSWORD: %s / %s / %s / %s", m.getAlias(), pe.getId(), pe.getRecoveryInfo(), m.getExpirationTime().toString());
                 } else {
                     line = "Unknown entry";
                 }
@@ -156,7 +185,7 @@ public class VaultCLI {
         System.out.println("CREATE ENTRY");
 
         doWriteAction(options, vault -> {
-            final String title = askInput("Title");
+            final String alias = options.getAlias().isPresent() ? options.getAlias().get() : askInput("Alias");
             final String userId = askInput("User id");
             final String recovery = askInput("Recovery info (optional)");
             final String comment = askInput("Comment (optional)");
@@ -165,7 +194,7 @@ public class VaultCLI {
 
             if (maybePassword.isPresent() && maybePasswordConfirm.isPresent()) {
                 if (Arrays.equals(maybePassword.get(), maybePasswordConfirm.get())) {
-                    final Entry newEntry = new PasswordEntry(userId, maybePassword.toString(), title, comment, recovery);
+                    final Entry newEntry = new PasswordEntry(userId, maybePassword.toString(), alias, comment, recovery);
 
                     vault.getEntries().add(newEntry);
                 } else {
@@ -189,6 +218,72 @@ public class VaultCLI {
             }
         });
     }
+
+    public void generateKey(final Options options) {
+        System.out.println("GENERATE KEY");
+
+        final String keyType = options.getKeyType().get().toLowerCase();
+
+        if ("aes".equals(keyType)) {
+            generateAESKey();
+        } else if ("rsa".equals(keyType)) {
+            generateRSAKeys();
+        } else {
+            error("Unknown key type: " + keyType);
+        }
+    }
+
+    private void generateRSAKeys() {
+        try {
+            final String publicPath = askInput("Public key save path");
+            final String privatePath = askInput("Private key save path");
+
+            final File publicFile = new File(publicPath);
+            final File privateFile = new File(privatePath);
+
+            if (publicFile.exists()) {
+                error("File already exists: " + publicFile.getAbsolutePath());
+            } else if (privateFile.exists()) {
+                error("File already exists: " + privateFile.getAbsolutePath());
+            } else {
+                final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+                generator.initialize(4096);
+
+                final KeyPair keyPair = generator.generateKeyPair();
+
+                Files.write(privateFile.toPath(), keyPair.getPrivate().getEncoded());
+                Files.write(publicFile.toPath(), keyPair.getPublic().getEncoded());
+
+                out("Keys have been created");
+            }
+        } catch (NoSuchAlgorithmException e) {
+            error(e.getMessage());
+        } catch (IOException e) {
+            error(e.getMessage());
+        }
+    }
+
+    private void generateAESKey() {
+        try {
+            final String keyPath = askInput("Key save path");
+            final File keyFile = new File(keyPath);
+
+            if (keyFile.exists()) {
+                error("File already exists: " + keyFile.getAbsolutePath());
+            } else {
+                final KeyGenerator generator = KeyGenerator.getInstance("AES");
+                generator.init(256);
+                final SecretKey secretKey = generator.generateKey();
+
+                Files.write(keyFile.toPath(), secretKey.getEncoded());
+            }
+        } catch (NoSuchAlgorithmException e) {
+            error(e.getMessage());
+        } catch (IOException e) {
+            error(e.getMessage());
+        }
+    }
+
 
     protected String askInput(final String prompt) {
         System.out.print(prompt + ": ");
@@ -313,6 +408,7 @@ public class VaultCLI {
                 "    vault -list -v <vault> [OPTS]                                   List vault entries",
                 "    vault -create-entry -a <alias> -t <TYPE> -v <vault> [OPTS]      Create a new vault entry",
                 "    vault -info -v <vault>                                          Show information about the selected vault",
+                "    vault -show-entry -a <alias> -v <vault>                         Show the specified entry",
                 "", "",
                 "  Possible OPTS are:",
                 "    -f <folder alias>      Specify the current folder",
@@ -323,7 +419,8 @@ public class VaultCLI {
                 "",
                 "  Possible METHODS are:",
                 "    pw                     Use password-based encryption",
-                "    key                    Use key file-based encryption",
+                "    aes                    Use AES key file-based encryption",
+                "    rsa                    Use RSA key file-based encryption",
                 "",
                 "  Possible TYPEs are:",
                 "    password"
@@ -349,7 +446,7 @@ public class VaultCLI {
                 } else {
                     error("Password encryption was selected but no password was provided");
                 }
-            } else if ("key".equals(authOption)) {
+            } else if ("aes".equals(authOption)) {
                 if (console != null) {
                     out("Enter path to key file: ");
                     final File keyFile = new File(console.readLine());
@@ -357,10 +454,18 @@ public class VaultCLI {
                     if (keyFile.exists()) {
                         final Path keyPath = keyFile.toPath();
                         final byte[] bytes = Files.readAllBytes(keyPath);
-                        credentials.add(new PrivateKey(bytes));
+                        credentials.add(new AESKey(bytes));
                     } else {
                         error("The specified keyfile does not exist");
                     }
+                }
+            } else if ("rsa".equals(authOption)) {
+                final String keyPath = askInput("Enter path to public key file");
+                final File keyFile = new File(keyPath);
+
+                if (keyFile.exists()) {
+                    final byte[] bytes = Files.readAllBytes(keyFile.toPath());
+                    credentials.add(new RSAPublicKey(bytes));
                 }
             } else {
                 error("The selected authentication mode (" + authOption + ") is invalid, skipping");

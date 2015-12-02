@@ -2,12 +2,12 @@ package so.blacklight.vault.crypto;
 
 import so.blacklight.vault.Credential;
 
-public class PrivateKey implements Credential {
+public class RSAPrivateKey implements Credential {
 
-    private byte[] key;
+    private final byte[] bytes;
 
-    public PrivateKey(final byte[] key) {
-        this.key = key;
+    public RSAPrivateKey(final byte[] bytes) {
+        this.bytes = bytes;
     }
 
     @Override
@@ -17,6 +17,6 @@ public class PrivateKey implements Credential {
 
     @Override
     public byte[] getBytes() {
-        return key;
+        return bytes;
     }
 }
