@@ -6,11 +6,10 @@ import so.blacklight.vault.Credential;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 /**
  * Encapsulates the information necessary to encrypt/decrypt an object.
@@ -191,16 +190,23 @@ public class EncryptionParameter {
         random.nextBytes(bytes);
     }
 
+    // TODO this method doesn't need to know about encryption details, it should be extracted from here
     private Key generateKey(Credential credentials, byte[] salt) {
-        final Key secretKey;
+        Key secretKey;
 
-        if (credentials.isUserInput()) {
-            secretKey = new SecretKeySpec(deriveKey(credentials.getBytes(), salt), CRYPTO_ALG);
-        } else if (credentials instanceof RSAPrivateKey) {
-            secretKey = new SecretKeySpec(credentials.getBytes(), "RSA");
-        } else if (credentials instanceof RSAPublicKey) {
-            secretKey = new SecretKeySpec(credentials.getBytes(), "RSA");
-        } else {
+        try {
+            if (credentials.isUserInput()) {
+                secretKey = new SecretKeySpec(deriveKey(credentials.getBytes(), salt), CRYPTO_ALG);
+            } else if (credentials instanceof RSAPrivateKey) {
+                secretKey = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(credentials.getBytes()));
+            } else if (credentials instanceof RSAPublicKey) {
+                secretKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(credentials.getBytes()));
+            } else {
+                secretKey = new SecretKeySpec(credentials.getBytes(), CRYPTO_ALG);
+            }
+        } catch (NoSuchAlgorithmException e) {
+            secretKey = new SecretKeySpec(credentials.getBytes(), CRYPTO_ALG);
+        } catch (InvalidKeySpecException e) {
             secretKey = new SecretKeySpec(credentials.getBytes(), CRYPTO_ALG);
         }
 

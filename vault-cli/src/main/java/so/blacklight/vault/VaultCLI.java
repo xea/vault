@@ -16,6 +16,7 @@ import com.github.jankroken.commandline.OptionStyle;
 
 import fj.data.Either;
 import fj.data.List;
+import org.apache.commons.codec.binary.Base64;
 import so.blacklight.vault.crypto.Password;
 import so.blacklight.vault.crypto.AESKey;
 import so.blacklight.vault.crypto.RSAPrivateKey;
@@ -251,7 +252,7 @@ public class VaultCLI {
 
                 final KeyPair keyPair = generator.generateKeyPair();
 
-                Files.write(privateFile.toPath(), keyPair.getPrivate().getEncoded());
+                Files.write(privateFile.toPath(), Base64.encodeBase64(keyPair.getPrivate().getEncoded()));
                 Files.write(publicFile.toPath(), keyPair.getPublic().getEncoded());
 
                 out("Keys have been created");
@@ -400,38 +401,6 @@ public class VaultCLI {
         }
     }
 
-    public void showHelp(final Options.Action action) {
-        if (action == Options.Action.DEFAULT_ACTION) {
-            final String[] messages = new String[] {
-                "Usage: ",
-                "    vault -create -v <vault> [OPTS]                                 Create new vault",
-                "    vault -list -v <vault> [OPTS]                                   List vault entries",
-                "    vault -create-entry -a <alias> -t <TYPE> -v <vault> [OPTS]      Create a new vault entry",
-                "    vault -info -v <vault>                                          Show information about the selected vault",
-                "    vault -show-entry -a <alias> -v <vault>                         Show the specified entry",
-                "", "",
-                "  Possible OPTS are:",
-                "    -f <folder alias>      Specify the current folder",
-                "    -r                     Activate recovery segment",
-                "    -k <keyfile>           Use keyfile for encryption/decryption",
-                "    -d                     Activate degraded segment",
-                "    -m [METHODS]           Use specified authentication methods",
-                "",
-                "  Possible METHODS are:",
-                "    pw                     Use password-based encryption",
-                "    aes                    Use AES key file-based encryption",
-                "    rsa                    Use RSA key file-based encryption",
-                "",
-                "  Possible TYPEs are:",
-                "    password"
-            };
-
-            out(messages);
-        } else {
-            out("HELP MESSAGE ABOUT: " + action.name());
-        }
-    }
-
     protected Credentials buildCredentials(final Options options) throws IOException {
         final Credentials credentials = new Credentials();
 
@@ -460,12 +429,12 @@ public class VaultCLI {
                     }
                 }
             } else if ("rsa".equals(authOption)) {
-                final String keyPath = askInput("Enter path to public key file");
+                final String keyPath = askInput("Enter path to private key file");
                 final File keyFile = new File(keyPath);
 
                 if (keyFile.exists()) {
-                    final byte[] bytes = Files.readAllBytes(keyFile.toPath());
-                    credentials.add(new RSAPublicKey(bytes));
+                    final byte[] bytes = Base64.decodeBase64(Files.readAllBytes(keyFile.toPath()));
+                    credentials.add(new RSAPrivateKey(bytes));
                 }
             } else {
                 error("The selected authentication mode (" + authOption + ") is invalid, skipping");
@@ -482,4 +451,37 @@ public class VaultCLI {
     protected void error(final String... messages) {
         Arrays.asList(messages).forEach(msg -> System.out.println("ERROR: " + msg));
     }
+
+    public void showHelp(final Options.Action action) {
+        if (action == Options.Action.DEFAULT_ACTION) {
+            final String[] messages = new String[] {
+                    "Usage: ",
+                    "    vault -create -v <vault> [OPTS]                                 Create new vault",
+                    "    vault -list -v <vault> [OPTS]                                   List vault entries",
+                    "    vault -create-entry -a <alias> -t <TYPE> -v <vault> [OPTS]      Create a new vault entry",
+                    "    vault -info -v <vault>                                          Show information about the selected vault",
+                    "    vault -show-entry -a <alias> -v <vault>                         Show the specified entry",
+                    "", "",
+                    "  Possible OPTS are:",
+                    "    -f <folder alias>      Specify the current folder",
+                    "    -r                     Activate recovery segment",
+                    "    -k <keyfile>           Use keyfile for encryption/decryption",
+                    "    -d                     Activate degraded segment",
+                    "    -m [METHODS]           Use specified authentication methods",
+                    "",
+                    "  Possible METHODS are:",
+                    "    pw                     Use password-based encryption",
+                    "    aes                    Use AES key file-based encryption",
+                    "    rsa                    Use RSA key file-based encryption",
+                    "",
+                    "  Possible TYPEs are:",
+                    "    password"
+            };
+
+            out(messages);
+        } else {
+            out("HELP MESSAGE ABOUT: " + action.name());
+        }
+    }
+
 }
