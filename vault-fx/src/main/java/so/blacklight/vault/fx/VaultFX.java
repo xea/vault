@@ -22,5 +22,7 @@ public class VaultFX extends Application {
         primaryStage.setResizable(false);
         primaryStage.setScene(scene);
         primaryStage.show();
+
     }
+
 }

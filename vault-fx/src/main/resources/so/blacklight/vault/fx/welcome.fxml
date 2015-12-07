@@ -13,7 +13,7 @@
          <children>
             <ScrollPane hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
                <content>
-                  <ListView prefHeight="362.0" prefWidth="200.0" />
+                  <ListView fx:id="listRecentEntries" prefHeight="362.0" prefWidth="200.0" />
                </content>
             </ScrollPane>
          </children>

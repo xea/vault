@@ -22,6 +22,11 @@
             <groupId>com.github.jankroken</groupId>
             <artifactId>commandline</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -34,7 +39,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>so.blacklight.vault.VaultCLI</mainClass>
+                            <mainClass>so.blacklight.vault.cli.VaultCLI</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

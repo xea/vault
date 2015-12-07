@@ -1,4 +1,4 @@
-package so.blacklight.vault;
+package so.blacklight.vault.cli;
 
 import com.github.jankroken.commandline.annotations.*;
 
@@ -49,7 +49,7 @@ public class Options {
 
     @Option
     @ShortSwitch("c")
-    @LongSwitch("create")
+    @LongSwitch("create-vault")
     @Toggle(false)
     public void requestCreateVault(boolean value) {
         overrideDefaultAction(Action.CREATE_VAULT);
@@ -177,64 +177,6 @@ public class Options {
         return generateDegraded;
     }
 
-    public Optional<String> isValid() {
-        boolean valid = false;
-
-        String errorMsg = "DEFAULT ERROR";
-
-        if (action == Action.CREATE_VAULT) {
-            if (!vaultFile.isPresent()) {
-                errorMsg = "No vault file was specified";
-            } else if (authOptions.size() == 0) {
-                errorMsg = "No encryption method was specified";
-            } else {
-                valid = true;
-            }
-        } else if (action == Action.CREATE_FOLDER) {
-            if (!alias.isPresent()) {
-                errorMsg = "Missing folder alias";
-            } else {
-                valid = true;
-            }
-        } else if (action == Action.CREATE_ENTRY) {
-            if (!alias.isPresent()) {
-                errorMsg = "Missing entry alias";
-            } else {
-                valid = true;
-            }
-        } else if (action == Action.LIST_ENTRIES) {
-            if (!vaultFile.isPresent()) {
-                errorMsg = "No vault file was specified";
-            } else {
-                valid = true;
-            }
-        } else if (action == Action.SHOW_ENTRY) {
-            if (!alias.isPresent()) {
-                errorMsg = "Missing entry alias";
-            } else {
-                valid = true;
-            }
-        } else if (action == Action.SHOW_INFO) {
-            if (!vaultFile.isPresent()) {
-                errorMsg = "No vault file was specified";
-            } else {
-                valid = true;
-            }
-        } else if (action == Action.GENERATE_KEY) {
-            if (!keyType.isPresent()) {
-                errorMsg = "A key type must be specified";
-            } else {
-                valid = true;
-            }
-        }
-
-        if (valid) {
-            return Optional.empty();
-        } else {
-            return Optional.of(errorMsg);
-        }
-    }
-
     private boolean overrideDefaultAction(Action action) {
         if (this.action == Action.DEFAULT_ACTION) {
             this.action = action;
@@ -248,7 +190,7 @@ public class Options {
     /**
      * Actions that the CLI program can perform
      */
-    enum Action {
+    public enum Action {
         DEFAULT_ACTION,
         CREATE_VAULT,
         CREATE_FOLDER,
