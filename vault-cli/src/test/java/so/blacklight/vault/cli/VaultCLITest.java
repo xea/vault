@@ -14,7 +14,7 @@ public class VaultCLITest {
     public void processArgsShouldRecogniseShortCommands() {
         final VaultCLI cli = new VaultCLI();
 
-        final Options o1 = cli.processArgs(null);
+        final Options o1 = cli.processArgs(new String[] { "-q" });
         assertNotNull(o1);
         assertEquals(Options.Action.DEFAULT_ACTION, o1.getAction());
 
@@ -35,10 +35,10 @@ public class VaultCLITest {
         assertNotNull(o1.getAction());
         assertEquals(Options.Action.LIST_ENTRIES, o1.getAction());
 
-        final Options o2 = cli.processArgs(new String[] { "-v", "-l" });
+        final Options o2 = cli.processArgs(new String[] { "-v", "vault.vlt", "-l" });
         assertNotNull(o2.getAction());
         assertEquals(Options.Action.LIST_ENTRIES, o2.getAction());
-        final Options o3 = cli.processArgs(new String[] { "-v", "-l" , "-a" });
+        final Options o3 = cli.processArgs(new String[] { "-v", "vault.vlt", "-l" , "-show-entry" });
         assertNotNull(o3.getAction());
         assertEquals(Options.Action.LIST_ENTRIES, o3.getAction());
     }
@@ -56,18 +56,14 @@ public class VaultCLITest {
     public void runCommandDefaultsToDefaultActionWhenCommandIsInvalid() {
         final VaultCLI cli = new VaultCLI();
 
-        // missing arguments
-        final Options o1 = cli.processArgs(new String[] { "-create-entry" });
         // typo in command
         final Options o2 = cli.processArgs(new String[] { "-cre-eny" });
         // superfluous arguments
         final Options o3 = cli.processArgs(new String[] { "-show-info", "-a", "alias" });
 
-        final CLICommand cmd1 = cli.processRequest(o1);
         final CLICommand cmd2 = cli.processRequest(o2);
         final CLICommand cmd3 = cli.processRequest(o3);
 
-        assertTrue(cmd1 instanceof ShowHelp);
         assertTrue(cmd2 instanceof ShowHelp);
         assertTrue(cmd3 instanceof ShowHelp);
     }

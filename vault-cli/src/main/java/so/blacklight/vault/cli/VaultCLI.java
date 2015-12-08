@@ -1,13 +1,16 @@
 package so.blacklight.vault.cli;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
 import com.github.jankroken.commandline.CommandLineParser;
 import com.github.jankroken.commandline.OptionStyle;
 
+import com.github.jankroken.commandline.domain.InvalidCommandLineException;
+import com.github.jankroken.commandline.domain.UnrecognizedSwitchException;
 import so.blacklight.vault.VaultException;
 import so.blacklight.vault.command.*;
+import so.blacklight.vault.locale.I18n;
+import so.blacklight.vault.locale.Message;
 
 /**
  * Main executable class, intended to be called from the command line.
@@ -15,6 +18,8 @@ import so.blacklight.vault.command.*;
 public class VaultCLI {
 
     private final Console console = new Console();
+
+    private final I18n i18n = new I18n();
 
     public static void main(final String[] args) throws VaultException {
         final VaultCLI cli = new VaultCLI();
@@ -29,12 +34,12 @@ public class VaultCLI {
             final Options options = CommandLineParser.parse(Options.class, args, OptionStyle.SIMPLE);
 
             return options;
-        } catch (IllegalAccessException e) {
-            console.error("Illegal access exception: " + e.getMessage());
-        } catch (InstantiationException e) {
-            console.error("Instantiation exception: " + e.getMessage());
-        } catch (InvocationTargetException e) {
-            console.error("Invocation target exception: " + e.getMessage());
+        } catch (InvalidCommandLineException e) {
+            console.error("Invalid command line exception " + e.getMessage());
+        } catch (UnrecognizedSwitchException e) {
+            console.error("Unrecognised switch exception " + e.getLocalizedMessage());
+        } catch (Exception e) {
+            console.error(i18n.t(Message.GENERIC_EXCEPTION, e.getLocalizedMessage()));
         }
 
         return new Options();

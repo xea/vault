@@ -39,7 +39,7 @@ public interface CLICommand {
 
     /**
      * Attempt to validate the passed command-line options and return a list of error
-     * messages in case the validation fails.
+     * messages.properties in case the validation fails.
      *
      * @return <code>Optional.empty()</code> if no errors were found, otherwise a String describing
      * the errors
