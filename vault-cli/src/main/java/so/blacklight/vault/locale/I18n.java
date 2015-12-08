@@ -4,6 +4,10 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Provides a simple interface for supporting internationalisation within the application.
+ *
+ */
 public class I18n {
 
     public static final String BUNDLE_NAME = "messages";
@@ -29,7 +33,7 @@ public class I18n {
         return t(msgId.getKey(), args);
     }
 
-    public String t(final String key, final Object... args) {
+    private String t(final String key, final Object... args) {
         final MessageFormat format = new MessageFormat(resourceBundle.getString(key), locale);
 
         final String message = format.format(args);
