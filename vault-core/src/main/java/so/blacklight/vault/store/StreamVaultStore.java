@@ -1,11 +1,28 @@
 package so.blacklight.vault.store;
 
+import static fj.data.List.list;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Optional;
+
 import fj.F;
 import fj.Unit;
 import fj.data.Either;
 import fj.data.List;
 import fj.data.Option;
-import so.blacklight.vault.*;
+import so.blacklight.vault.Credential;
+import so.blacklight.vault.Credentials;
+import so.blacklight.vault.Vault;
+import so.blacklight.vault.VaultStore;
 import so.blacklight.vault.collection.Tuple2;
 import so.blacklight.vault.crypto.Crypto;
 import so.blacklight.vault.crypto.CryptoImpl;
@@ -13,13 +30,6 @@ import so.blacklight.vault.crypto.EncryptionParameter;
 import so.blacklight.vault.io.VaultInputStream;
 import so.blacklight.vault.io.VaultOutputStream;
 import so.blacklight.vault.io.VaultRecord;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Optional;
-
-import static fj.data.List.list;
 
 /**
  * A vault store that uses vault VaultInputStream and VaultOutputStream internally to load/save vault data
@@ -135,8 +145,10 @@ public class StreamVaultStore implements VaultStore {
                 v -> v.getDegradedSegment()
         );
 
+        final F<List<Credential>, List<List<Credential>>> emptyList = l -> list();
+
         // Override time-consuming operations with trivial ones for those steps when we won't be encrypting anything
-        final List<F<List<Credential>, List<List<Credential>>>> ff = fv.map(f -> f.f(vault).isPresent()).zipWith(fs, (a, b) -> a ? b : l -> list());
+        final List<F<List<Credential>, List<List<Credential>>>> ff = fv.map(f -> f.f(vault).isPresent()).zipWith(fs, (a, b) -> a ? b : emptyList);
 
         // for each vault record we generate new encryption parameters and then encrypt the records
         final List<Either<String, List<VaultRecord>>> map = ff.map(f ->
@@ -237,7 +249,6 @@ public class StreamVaultStore implements VaultStore {
 		public EncTuple(Optional<Vault> t, List<List<EncryptionParameter>> u) {
 			super(t, u);
 		}
-    	
     }
 
 }

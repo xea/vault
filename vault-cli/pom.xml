@@ -15,7 +15,6 @@
         <dependency>
             <groupId>so.blacklight</groupId>
             <artifactId>vault-core</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>

@@ -73,7 +73,7 @@ public class Options {
 
     @Option
     @ShortSwitch("i")
-    @LongSwitch("info")
+    @LongSwitch("show-info")
     @Toggle(false)
     public void requestShowInfo(boolean value) {
         overrideDefaultAction(Action.SHOW_INFO);
@@ -81,7 +81,7 @@ public class Options {
 
     @Option
     @ShortSwitch("g")
-    @LongSwitch("gen-key")
+    @LongSwitch("generate-key")
     @SingleArgument
     public void requestGenerateKey(final String keyType) {
         overrideDefaultAction(Action.GENERATE_KEY);

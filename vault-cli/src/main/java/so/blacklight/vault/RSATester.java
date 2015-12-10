@@ -1,18 +1,30 @@
 package so.blacklight.vault;
 
-import org.apache.commons.codec.binary.Base64;
-import so.blacklight.vault.collection.Tuple2;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.NoSuchPaddingException;
-import java.io.*;
-import java.nio.file.Files;
-import java.security.*;
-import java.security.spec.*;
-import java.util.Arrays;
-import java.util.List;
+
+import org.apache.commons.codec.binary.Base64;
 
 public class RSATester {
 

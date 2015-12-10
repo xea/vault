@@ -1,15 +1,20 @@
 package so.blacklight.vault.crypto;
 
-import com.lambdaworks.crypto.SCrypt;
-import so.blacklight.vault.Credential;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+
+import javax.crypto.spec.SecretKeySpec;
+
+import com.lambdaworks.crypto.SCrypt;
+
+import so.blacklight.vault.Credential;
 
 /**
  * Encapsulates the information necessary to encrypt/decrypt an object.
@@ -33,28 +38,28 @@ public class EncryptionParameter {
     private Key key;
 
     /**
-     * Initialise a new parameter object with the given credentials and random
+     * Initialise a new parameter object with the given credential and random
      * IV and random salt.
      *
-     * @param credentials credentials
+     * @param credential credential
      */
-    public EncryptionParameter(final Credential credentials) {
+    public EncryptionParameter(final Credential credential) {
         iv = generateRandom(IV_LENGTH);
         salt = generateRandom(SALT_LENGTH);
-        key = generateKey(credentials, salt);
+        key = generateKey(credential, salt);
     }
 
     /**
-     * Initialise a new parameter object with the given credentials, IV and salt.
+     * Initialise a new parameter object with the given credential, IV and salt.
      *
-     * @param credentials credentials
+     * @param credential credential
      * @param iv initialising vector
      * @param salt password salt
      */
-    public EncryptionParameter(final Credential credentials, final byte[] iv, final byte[] salt) {
+    public EncryptionParameter(final Credential credential, final byte[] iv, final byte[] salt) {
         this.iv = iv;
         this.salt = salt;
-        this.key = generateKey(credentials, salt);
+        this.key = generateKey(credential, salt);
     }
 
     /**
@@ -191,23 +196,23 @@ public class EncryptionParameter {
     }
 
     // TODO this method doesn't need to know about encryption details, it should be extracted from here
-    private Key generateKey(Credential credentials, byte[] salt) {
+    private Key generateKey(Credential credential, byte[] salt) {
         Key secretKey;
 
         try {
-            if (credentials.isUserInput()) {
-                secretKey = new SecretKeySpec(deriveKey(credentials.getBytes(), salt), CRYPTO_ALG);
-            } else if (credentials instanceof RSAPrivateKey) {
-                secretKey = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(credentials.getBytes()));
-            } else if (credentials instanceof RSAPublicKey) {
-                secretKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(credentials.getBytes()));
+            if (credential.isUserInput()) {
+                secretKey = new SecretKeySpec(deriveKey(credential.getBytes(), salt), CRYPTO_ALG);
+            } else if (credential instanceof RSAPrivateKey) {
+                secretKey = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(credential.getBytes()));
+            } else if (credential instanceof RSAPublicKey) {
+                secretKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(credential.getBytes()));
             } else {
-                secretKey = new SecretKeySpec(credentials.getBytes(), CRYPTO_ALG);
+                secretKey = new SecretKeySpec(credential.getBytes(), CRYPTO_ALG);
             }
         } catch (NoSuchAlgorithmException e) {
-            secretKey = new SecretKeySpec(credentials.getBytes(), CRYPTO_ALG);
+            secretKey = new SecretKeySpec(credential.getBytes(), CRYPTO_ALG);
         } catch (InvalidKeySpecException e) {
-            secretKey = new SecretKeySpec(credentials.getBytes(), CRYPTO_ALG);
+            secretKey = new SecretKeySpec(credential.getBytes(), CRYPTO_ALG);
         }
 
         return secretKey;

@@ -39,6 +39,7 @@ public class ShowInfo extends VaultCommand {
                     console.out("Found record with " + record.getIvs().length + " IV(s) and " + record.getSalts().length + " salt(s) and block is " + record.getBlock().length + " bytes long");
                 });
 
+                vis.close();
             } catch (FileNotFoundException e) {
                 console.error(e.getMessage());
             } catch (IOException e) {

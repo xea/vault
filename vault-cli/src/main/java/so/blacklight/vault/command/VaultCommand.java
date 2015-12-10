@@ -7,6 +7,8 @@ import so.blacklight.vault.cli.Console;
 import so.blacklight.vault.crypto.AESKey;
 import so.blacklight.vault.crypto.Password;
 import so.blacklight.vault.crypto.RSAPrivateKey;
+import so.blacklight.vault.locale.I18n;
+import so.blacklight.vault.locale.Message;
 import so.blacklight.vault.store.StreamVaultStore;
 
 import java.io.File;
@@ -19,6 +21,12 @@ import java.util.function.Consumer;
 
 public abstract class VaultCommand implements CLICommand {
 
+    protected final static String CREDENTIAL_PASSWORD = "pw";
+    protected final static String CREDENTIAL_AES_KEY = "aes";
+    protected final static String CREDENTIAL_RSA_KEY = "rsa";
+    protected final static String CREDENTIAL_HMAC_KEY = "hmac";
+
+
     protected final Options options;
 
     protected VaultCommand(final Options options) {
@@ -29,16 +37,39 @@ public abstract class VaultCommand implements CLICommand {
 
     protected final Console console = new Console();
 
+    protected final I18n i18n = new I18n();
+
+
+    /**
+     * Attempt to perform a mutating action on the vault, if possible. If the vault cannot be opened in write mode
+     * then the action will not be executed and an error message will be displayed.
+     *
+     * If the action is executed successfully then the vault will be saved to it's original place.
+     *
+     * @param options vault options
+     * @param consumer action to perform
+     * @throws VaultException
+     */
     protected void doWriteAction(final Options options, final Consumer<Vault> consumer) throws VaultException {
         doAction(options, vault -> {
             if (vault.isWritable()) {
                 consumer.accept(vault);
             } else {
-                console.error("restricted mode doesn't allow changing data");
+                console.error(i18n.t(Message.ERROR_RESTRICTED_ACCESS));
             }
         }, true);
     }
 
+    /**
+     * Attempt to perform a read-only action on the vault, if possible. If the vault cannot be opened then the
+     * action will not be executed and an error message will be displayed.
+     *
+     * Any changes will be silently ignored.
+     *
+     * @param options vault option
+     * @param consumer action to perform
+     * @throws VaultException
+     */
     protected void doAction(final Options options, final Consumer<Vault> consumer) throws VaultException {
         doAction(options, consumer, false);
     }
@@ -62,15 +93,23 @@ public abstract class VaultCommand implements CLICommand {
                         store.save(vault, credentials, vaultFile);
                     }
                 } else {
-                    final String message = "Could not load vault: ";
-                    console.error(message + maybeVault.left().value());
+                    console.error(i18n.t(Message.ERROR_CANNOT_LOAD, maybeVault.left().value()));
                 }
             } catch (final IOException e) {
-                throw new VaultException("ERROR: " + e.getMessage());
+                throw new VaultException(i18n.t(Message.GENERIC_ERROR, e.getLocalizedMessage()));
             }
         } else {
-            final String message = "Vault file doesn't exist or isn't readable: " + vaultFile.getAbsolutePath();
-            console.error(message);
+            console.error(i18n.t(Message.ERROR_CANNOT_READ, vaultFile.getAbsolutePath()));
+        }
+    }
+
+    protected void doFileAction(final Options options, final Consumer<File> consumer) {
+        final File vaultFile = options.getVaultFile().orElse(DEFAULT_VAULT);
+
+        if (vaultFile.exists() && vaultFile.canRead()) {
+            consumer.accept(vaultFile);
+        } else {
+            console.error(i18n.t(Message.ERROR_CANNOT_READ, vaultFile.getAbsolutePath()));
         }
     }
 
@@ -79,7 +118,7 @@ public abstract class VaultCommand implements CLICommand {
 
         for (final String authOption : options.getAuthOptions()) {
 
-            if ("pw".equals(authOption)) {
+            if (CREDENTIAL_PASSWORD.equals(authOption)) {
                 final Optional<char[]> maybePassword = console.askPassword("Enter password");
 
                 if (maybePassword.isPresent() && maybePassword.get().length > 0) {
@@ -87,7 +126,7 @@ public abstract class VaultCommand implements CLICommand {
                 } else {
                     console.error("Password encryption was selected but no password was provided");
                 }
-            } else if ("aes".equals(authOption)) {
+            } else if (CREDENTIAL_AES_KEY.equals(authOption)) {
                 final String privateKeyPath = console.askInput("Enter path to key file");
                 final File keyFile = new File(privateKeyPath);
 
@@ -98,7 +137,7 @@ public abstract class VaultCommand implements CLICommand {
                 } else {
                     console.error("The specified keyfile does not exist");
                 }
-            } else if ("rsa".equals(authOption)) {
+            } else if (CREDENTIAL_RSA_KEY.equals(authOption)) {
                 final String keyPath = console.askInput("Enter path to private key file");
                 final File keyFile = new File(keyPath);
 

@@ -9,10 +9,19 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Optional;
 
+/**
+ * Provides easy access to some frequently used console-related functions.
+ */
 public class Console {
 
     private I18n i18n = new I18n();
 
+    /**
+     * Display a prompt message and ask the user for an answer
+     *
+     * @param prompt text to display
+     * @return user input
+     */
     public String askInput(final String prompt) {
         System.out.print(prompt + ": ");
 
@@ -35,6 +44,12 @@ public class Console {
         return null;
     }
 
+    /**
+     * Display a prompt message and ask the user for an answer but the answer is not echoed on the screen.
+     *
+     * @param prompt text to display
+     * @return user input
+     */
     public Optional<char[]> askPassword(final String prompt) {
         System.out.print(prompt + ": ");
 
@@ -62,6 +77,6 @@ public class Console {
     }
 
     public void error(final String... messages) {
-        Arrays.asList(messages).forEach(msg -> System.out.println(i18n.t(Message.GENERIC_ERROR, msg)));
+        Arrays.asList(messages).forEach(msg -> out(i18n.t(Message.GENERIC_ERROR, msg)));
     }
 }

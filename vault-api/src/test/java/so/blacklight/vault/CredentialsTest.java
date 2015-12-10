@@ -1,12 +1,10 @@
 package so.blacklight.vault;
 
-import junit.framework.Assert;
-import org.junit.Test;
-import so.blacklight.vault.crypto.Password;
-
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+
+import org.junit.Test;
+
+import so.blacklight.vault.crypto.Password;
 
 public class CredentialsTest {
 

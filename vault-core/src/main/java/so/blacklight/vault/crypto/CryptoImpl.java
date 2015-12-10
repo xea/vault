@@ -69,7 +69,8 @@ public class CryptoImpl<T extends Serializable> implements Crypto<T> {
             final Cipher cipher = maybeCipher.right().value();
 
             try {
-                final T secret = (T) sealedObject.getObject(cipher);
+                @SuppressWarnings("unchecked")
+				final T secret = (T) sealedObject.getObject(cipher);
 
                 return Either.right(secret);
             } catch (final Exception e) {
