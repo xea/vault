@@ -229,7 +229,8 @@ public class StreamVaultStore implements VaultStore {
             final java.util.List<EncryptionParameter> params = new ArrayList<>();
 
             for (int i = 0; i < r.count(); i++) {
-                params.add(new EncryptionParameter(credentials.index(i), ivs[i], salts[i]));
+                final Credential credential = credentials.index(i);
+                params.add(new EncryptionParameter(credential, ivs[i], salts[i]));
             }
 
             // credentials are always sorted for encryption, here we manually reverse the order for decryption

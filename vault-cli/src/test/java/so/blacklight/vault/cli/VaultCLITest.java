@@ -11,9 +11,11 @@ import so.blacklight.vault.VaultStore;
 import so.blacklight.vault.command.CLICommand;
 import so.blacklight.vault.command.ShowHelp;
 import so.blacklight.vault.crypto.Password;
+import so.blacklight.vault.crypto.RSAPrivateKey;
 import so.blacklight.vault.store.StreamVaultStore;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 
@@ -122,19 +124,28 @@ public class VaultCLITest {
 
     @Test
     public void testSingleRSAKeyEncryption() throws IOException, VaultException {
-        final File tmpPrivateKey = File.createTempFile("junit", "vlt");
-        final File tmpPublicKey = File.createTempFile("junit", "vlt");
+        final File tmpPrivateKey = File.createTempFile("junit", "-private.vlt");
+        final File tmpPublicKey = File.createTempFile("junit", "-public.vlt");
         tmpPrivateKey.deleteOnExit();
         tmpPublicKey.deleteOnExit();
         tmpPrivateKey.delete();
         tmpPublicKey.delete();
 
-        updateInput(tmpPrivateKey.getAbsolutePath());
+        final String[] genargs = new String[] { "-generate-key", "rsa" };
+        updateInput(tmpPublicKey.getAbsolutePath(), tmpPrivateKey.getAbsolutePath());
+        VaultCLI.main(genargs);
 
         final String[] args = new String[] { "-create-vault", "-v", randomFile.getAbsolutePath(), "-m", "rsa" };
+        updateInput(tmpPrivateKey.getAbsolutePath());
         VaultCLI.main(args);
 
-        
+        assertTrue(randomFile.exists());
+        assertTrue(randomFile.length() > 0);
+
+        final byte[] keyBytes = Files.readAllBytes(tmpPrivateKey.toPath());
+        final Credentials credentials = new Credentials(Arrays.asList(new RSAPrivateKey(keyBytes)));
+        Either<String, Vault> load = store.load(credentials, randomFile);
+        assertTrue(load.isRight());
     }
 
     private void updateInput(final String... args) {
@@ -142,7 +153,7 @@ public class VaultCLITest {
     }
 
     private void updateInput(final List<String> args) {
-        String input = args.stream().reduce((a, b) -> a + "\n" + b).get();
+        String input = args.stream().map(a -> a + "\r\n").reduce((a, b) -> a + b).get();
 
         final InputStream inputStream = new ByteArrayInputStream(input.getBytes());
         final OutputStream outputStream = new ByteArrayOutputStream();

@@ -5,12 +5,11 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="so.blacklight.vault.fx.AuthController">
    <children>
       <HBox prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
          <children>
-            <ListView prefHeight="200.0" prefWidth="200.0" />
+            <ListView fx:id="listAuthOptions" prefHeight="200.0" prefWidth="200.0" />
             <VBox prefHeight="200.0" prefWidth="100.0" HBox.hgrow="ALWAYS">
                <children>
                   <GridPane VBox.vgrow="ALWAYS">
@@ -25,9 +24,9 @@
                       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                      <children>
-                        <Hyperlink text="Add password protection" GridPane.columnIndex="1" />
-                        <Hyperlink text="Add RSA key protection" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <Hyperlink text="Add HMAC-HOTP protection" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <Hyperlink fx:id="linkAddPassword" text="Add password protection" GridPane.columnIndex="1" />
+                        <Hyperlink fx:id="linkAddRSAKey" text="Add RSA key protection" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Hyperlink fx:id="linkAddHMAC" text="Add HMAC-HOTP protection" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                      </children>
                   </GridPane>
                </children>
@@ -39,8 +38,8 @@
       </HBox>
       <HBox prefHeight="100.0" prefWidth="200.0">
          <children>
-            <Button mnemonicParsing="false" text="Ok" />
-            <Button mnemonicParsing="false" text="Cancel" />
+            <Button fx:id="btnOk" mnemonicParsing="false" onAction="#openVault" text="Ok" />
+            <Button fx:id="btnCancel" mnemonicParsing="false" onAction="#cancelAuth" text="Cancel" />
          </children>
       </HBox>
    </children>

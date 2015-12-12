@@ -19,7 +19,7 @@ import java.time.Instant;
 
 import static javafx.stage.FileChooser.ExtensionFilter;
 
-public class WelcomeController {
+public class WelcomeController extends BaseController {
 
     @FXML
     private Hyperlink linkCreateNew;
@@ -52,7 +52,7 @@ public class WelcomeController {
 
         if (selectedFile != null) {
             if (selectedFile.exists()) {
-                switchScene(event);
+                switchScene(event, VaultScene.AUTHENTICATION);
             } else {
                 final Alert alert = new Alert(Alert.AlertType.ERROR, "File does not exist", ButtonType.OK);
                 alert.showAndWait();
@@ -60,14 +60,5 @@ public class WelcomeController {
         }
     }
 
-    public void switchScene(final ActionEvent event) throws IOException {
-        final Parent sceneGraph = FXMLLoader.load(getClass().getResource("auth.fxml"));
-        final Scene authScene = new Scene(sceneGraph);
-        final Stage appStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-
-        appStage.setTitle("Authenticate yourself");
-        appStage.setScene(authScene);
-        appStage.show();
-    }
 
 }

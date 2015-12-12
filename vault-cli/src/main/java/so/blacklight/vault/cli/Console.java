@@ -3,9 +3,7 @@ package so.blacklight.vault.cli;
 import so.blacklight.vault.locale.I18n;
 import so.blacklight.vault.locale.Message;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -28,12 +26,8 @@ public class Console {
         if (System.console() != null) {
             return System.console().readLine();
         } else {
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
             try {
-                final String input = reader.readLine();
-
-                reader.close();
+                final String input = readLine();
 
                 return input;
             } catch (IOException e) {
@@ -78,5 +72,24 @@ public class Console {
 
     public void error(final String... messages) {
         Arrays.asList(messages).forEach(msg -> out(i18n.t(Message.GENERIC_ERROR, msg)));
+    }
+
+    protected String readLine() throws IOException {
+        final InputStream in = System.in;
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        int c;
+
+        while ((c = in.read()) != -1) {
+            if (c == '\n') {
+                // newline found
+                break;
+            } else if (c != '\r') {
+                baos.write(c);
+            }
+        }
+
+        return baos.toString().trim();
     }
 }
