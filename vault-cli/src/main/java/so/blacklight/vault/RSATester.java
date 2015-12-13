@@ -36,8 +36,8 @@ public class RSATester {
         System.out.println(keyPair.getPrivate().getFormat());
         System.out.println(keyPair.getPublic().getFormat());
 
-        final File outPub = new File("/Users/specsi/workspaces/java/vault/out_public.der");
-        final File outPriv = new File("/Users/specsi/workspaces/java/vault/out_private.pk8");
+        final File outPub = new File("public.der");
+        final File outPriv = new File("private.pk8");
 
         final OutputStream ospub = new FileOutputStream(outPub);
         final OutputStream ospriv = new FileOutputStream(outPriv);
@@ -50,8 +50,8 @@ public class RSATester {
     }
 
     public static void main(final String[] args) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
-        final File privFile = new File("/Users/specsi/workspaces/java/vault/out_private.pk8");
-        final File pubFile = new File("/Users/specsi/workspaces/java/vault/out_public.der");
+        final File privFile = new File("private.pk8");
+        final File pubFile = new File("public.der");
         final byte[] privBytes = Base64.decodeBase64(Files.readAllBytes(privFile.toPath()));
         final byte[] pubBytes = Files.readAllBytes(pubFile.toPath());
         final KeySpec publicKeySpec = new X509EncodedKeySpec(pubBytes);
@@ -66,7 +66,7 @@ public class RSATester {
         final Cipher encCipher = Cipher.getInstance("RSA");
         encCipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
-        final File cipherFile = new File("/Users/specsi/workspaces/java/vault/output.enc");
+        final File cipherFile = new File("output.enc");
         final FileOutputStream fos = new FileOutputStream(cipherFile);
         final CipherOutputStream cos = new CipherOutputStream(fos, encCipher);
 

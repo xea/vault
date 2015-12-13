@@ -17,6 +17,7 @@ import so.blacklight.vault.store.StreamVaultStore;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -142,7 +143,7 @@ public class VaultCLITest {
         assertTrue(randomFile.exists());
         assertTrue(randomFile.length() > 0);
 
-        final byte[] keyBytes = Files.readAllBytes(tmpPrivateKey.toPath());
+        final byte[] keyBytes = Base64.getDecoder().decode(Files.readAllBytes(tmpPrivateKey.toPath()));
         final Credentials credentials = new Credentials(Arrays.asList(new RSAPrivateKey(keyBytes)));
         Either<String, Vault> load = store.load(credentials, randomFile);
         assertTrue(load.isRight());
