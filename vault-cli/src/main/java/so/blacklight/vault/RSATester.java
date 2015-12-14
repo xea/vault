@@ -28,6 +28,14 @@ import org.apache.commons.codec.binary.Base64;
 
 public class RSATester {
 
+    public static void main(final String[] args) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
+        if (1 == 2) {
+            main2(args);
+        } else {
+            main3(args);
+        }
+    }
+
     public static void main2(final String[] args) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
         final KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(4096);
@@ -36,8 +44,8 @@ public class RSATester {
         System.out.println(keyPair.getPrivate().getFormat());
         System.out.println(keyPair.getPublic().getFormat());
 
-        final File outPub = new File("/Users/specsi/workspaces/java/vault/out_public.der");
-        final File outPriv = new File("/Users/specsi/workspaces/java/vault/out_private.pk8");
+        final File outPub = new File("out_public.der");
+        final File outPriv = new File("out_private.pk8");
 
         final OutputStream ospub = new FileOutputStream(outPub);
         final OutputStream ospriv = new FileOutputStream(outPriv);
@@ -49,16 +57,15 @@ public class RSATester {
         ospriv.close();
     }
 
-    public static void main(final String[] args) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
-        final File privFile = new File("/Users/specsi/workspaces/java/vault/out_private.pk8");
-        final File pubFile = new File("/Users/specsi/workspaces/java/vault/out_public.der");
+    public static void main3(final String[] args) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
+        final File privFile = new File("out_private.pk8");
+        final File pubFile = new File("out_public.der");
         final byte[] privBytes = Base64.decodeBase64(Files.readAllBytes(privFile.toPath()));
         final byte[] pubBytes = Files.readAllBytes(pubFile.toPath());
         final KeySpec publicKeySpec = new X509EncodedKeySpec(pubBytes);
         final KeySpec privateKeySpec = new PKCS8EncodedKeySpec(privBytes);
 
         final KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        final KeyPairGenerator kpGenerator = KeyPairGenerator.getInstance("RSA");
 
         final Key publicKey = keyFactory.generatePublic(publicKeySpec);
         final Key privateKey = keyFactory.generatePrivate(privateKeySpec);
