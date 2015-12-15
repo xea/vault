@@ -10,8 +10,10 @@ import java.io.IOException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 import static org.junit.Assert.*;
 
@@ -89,18 +91,57 @@ public class KeyManagerTest {
         assertNotNull(rsaPrivateKey);
         assertEquals("RSA", rsaPrivateKey.getAlgorithm());
         assertEquals("PKCS#8", rsaPrivateKey.getFormat());
+    }
+
+    @Test
+    public void rsaPublicKeysAreSavedInDERFormat() throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+        final Tuple2<RSAPrivateKey, RSAPublicKey> pair = keyManager.generateRSAKeyPair(1024);
+        final File publicTmp = File.createTempFile("junit", "public-vlt");
+        keyManager.saveRSAPublicKey(pair.second(), publicTmp);
+
+        assertTrue(publicTmp.exists());
+        assertTrue(publicTmp.length() > 0);
+
+        final RSAPublicKey publicKey = keyManager.loadRSAPublicKey(publicTmp);
+        assertNotNull(publicKey);
+
+        final KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        final PublicKey rsaPublicKey = keyFactory.generatePublic(new X509EncodedKeySpec(publicKey.getBytes()));
+
+        assertNotNull(rsaPublicKey);
+        assertEquals("RSA", rsaPublicKey.getAlgorithm());
+        assertEquals("X.509", rsaPublicKey.getFormat());
+    }
+
+    @Test
+    public void generatedKeysShouldBeUsableAfterSavingAndLoading() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        final Tuple2<RSAPrivateKey, RSAPublicKey> pair = keyManager.generateRSAKeyPair(1024);
+        final File privateTmp = File.createTempFile("junit", "private-vlt");
+        final File publicTmp = File.createTempFile("junit", "public-vlt");
+
+        keyManager.saveRSAPrivateKey(pair.first(), privateTmp);
+        keyManager.saveRSAPublicKey(pair.second(), publicTmp);
+
+        assertTrue(privateTmp.exists());
+        assertTrue(privateTmp.length() > 0);
+        assertTrue(publicTmp.exists());
+        assertTrue(publicTmp.length() > 0);
+
+        final RSAPrivateKey privateKey = keyManager.loadRSAPrivateKey(privateTmp);
+        final RSAPublicKey publicKey = keyManager.loadRSAPublicKey(publicTmp);
 
         final Crypto<String> crypto = new CryptoImpl<>();
-        Either<String, byte[]> secret = crypto.encrypt("secret", new EncryptionParameter(keyManager.loadRSAPrivateKey(privateTmp)));
+        final Either<String, byte[]> secret = crypto.encrypt("secret", new EncryptionParameter(publicKey));
 
         assertNotNull(secret);
         assertTrue(secret.isRight());
+        assertNotEquals("secret", secret.right().value());
 
         Either<String, String> decrypt = crypto.decrypt(secret.right().value(), new EncryptionParameter(privateKey));
 
         assertNotNull(decrypt);
         assertTrue(decrypt.isRight());
         assertEquals("secret", decrypt.right().value());
-    }
 
+    }
 }

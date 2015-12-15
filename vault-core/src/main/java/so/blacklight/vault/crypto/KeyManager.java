@@ -26,6 +26,13 @@ public class KeyManager {
         return result;
     }
 
+    public RSAPublicKey loadRSAPublicKey(File source) throws IOException {
+        final byte[] rawBytes = Files.readAllBytes(source.toPath());
+
+        final RSAPublicKey publicKey = new RSAPublicKey(rawBytes);
+        return publicKey;
+    }
+
     public RSAPrivateKey loadRSAPrivateKey(final File source) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         final byte[] rawBytes = Base64.getDecoder().decode(stripPemHeaders(Files.readAllBytes(source.toPath())));
         /*final KeySpec keySpec = new PKCS8EncodedKeySpec(rawBytes);
@@ -37,6 +44,11 @@ public class KeyManager {
 
         return result;
     }
+
+    public void saveRSAPublicKey(RSAPublicKey key, File target) throws IOException {
+        Files.write(target.toPath(), key.getBytes());
+    }
+
 
     public void saveRSAPrivateKey(final RSAPrivateKey key, final File target) throws IOException {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -69,4 +81,5 @@ public class KeyManager {
             return input;
         }
     }
+
 }

@@ -1,6 +1,10 @@
 package so.blacklight.vault.command;
 
 import so.blacklight.vault.cli.Options;
+import so.blacklight.vault.collection.Tuple2;
+import so.blacklight.vault.crypto.KeyManager;
+import so.blacklight.vault.crypto.RSAPrivateKey;
+import so.blacklight.vault.crypto.RSAPublicKey;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -61,13 +65,11 @@ public class GenerateKeys extends VaultCommand {
             } else if (privateFile.exists()) {
                 console.error("File already exists: " + privateFile.getAbsolutePath());
             } else {
-                final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-                generator.initialize(4096);
+                final KeyManager keyManager = new KeyManager();
+                Tuple2<RSAPrivateKey, RSAPublicKey> keyPair = keyManager.generateRSAKeyPair(4096);
 
-                final KeyPair keyPair = generator.generateKeyPair();
-
-                Files.write(privateFile.toPath(), Base64.getEncoder().encode(keyPair.getPrivate().getEncoded()));
-                Files.write(publicFile.toPath(), keyPair.getPublic().getEncoded());
+                keyManager.saveRSAPrivateKey(keyPair.first(), privateFile);
+                keyManager.saveRSAPublicKey(keyPair.second(), publicFile);
 
                 console.out("Keys have been created");
             }

@@ -2,36 +2,37 @@ package so.blacklight.vault.command;
 
 import fj.data.Either;
 import so.blacklight.vault.*;
+import so.blacklight.vault.cli.CredentialsBuilder;
 import so.blacklight.vault.cli.Options;
 import so.blacklight.vault.cli.Console;
 import so.blacklight.vault.crypto.AESKey;
+import so.blacklight.vault.crypto.KeyManager;
 import so.blacklight.vault.crypto.Password;
 import so.blacklight.vault.crypto.RSAPrivateKey;
 import so.blacklight.vault.locale.I18n;
 import so.blacklight.vault.locale.Message;
 import so.blacklight.vault.store.StreamVaultStore;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Base64;
-import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.*;
+import java.util.List;
+import java.util.function.*;
+import java.util.stream.Collectors;
 
 public abstract class VaultCommand implements CLICommand {
 
     protected final static String CREDENTIAL_PASSWORD = "pw";
     protected final static String CREDENTIAL_AES_KEY = "aes";
     protected final static String CREDENTIAL_RSA_KEY = "rsa";
+    protected final static String CREDENTIAL_RSA_PRIVATE_KEY = "rsa_private";
+    protected final static String CREDENTIAL_RSA_PUBLIC_KEY = "rsa_public";
     protected final static String CREDENTIAL_HMAC_KEY = "hmac";
 
-
     protected final Options options;
-
-    protected VaultCommand(final Options options) {
-        this.options = options;
-    }
 
     public static final File DEFAULT_VAULT = new File("vault.vlt");
 
@@ -39,6 +40,20 @@ public abstract class VaultCommand implements CLICommand {
 
     protected final I18n i18n = new I18n();
 
+    protected final CredentialsBuilder credentialsBuilder = new CredentialsBuilder();
+
+    private final Map<String, Supplier<Either<String, Credential>>> authMapping = new HashMap<>();
+
+    protected VaultCommand(final Options options) {
+        this.options = options;
+
+        authMapping.put(CREDENTIAL_PASSWORD, () -> credentialsBuilder.requirePassword());
+        authMapping.put(CREDENTIAL_AES_KEY, () -> credentialsBuilder.requireAESKey());
+        authMapping.put(CREDENTIAL_RSA_KEY, () -> credentialsBuilder.requireRSAPrivateKey());
+        authMapping.put(CREDENTIAL_RSA_PRIVATE_KEY, () -> credentialsBuilder.requireRSAPrivateKey());
+        authMapping.put(CREDENTIAL_RSA_PUBLIC_KEY, () -> credentialsBuilder.requireRSAPublicKey());
+        authMapping.put(CREDENTIAL_HMAC_KEY, () -> credentialsBuilder.requireHMACToken());
+    }
 
     /**
      * Attempt to perform a mutating action on the vault, if possible. If the vault cannot be opened in write mode
@@ -113,43 +128,40 @@ public abstract class VaultCommand implements CLICommand {
         }
     }
 
+    protected void setAuthMapping(final String authId, final Supplier<Either<String, Credential>> mapping) {
+        authMapping.put(authId, mapping);
+    }
+
     protected Credentials buildCredentials(final Options options) throws IOException {
-        final Credentials credentials = new Credentials();
+        final Either<String, Credentials> reduceDefault = Either.right(new Credentials());
 
-        for (final String authOption : options.getAuthOptions()) {
+        final String defaultMessage = "ERROR";
 
-            if (CREDENTIAL_PASSWORD.equals(authOption)) {
-                final Optional<char[]> maybePassword = console.askPassword("Enter password");
-
-                if (maybePassword.isPresent() && maybePassword.get().length > 0) {
-                    credentials.add(new Password(maybePassword.get()));
-                } else {
-                    console.error("Password encryption was selected but no password was provided");
-                }
-            } else if (CREDENTIAL_AES_KEY.equals(authOption)) {
-                final String privateKeyPath = console.askInput("Enter path to key file");
-                final File keyFile = new File(privateKeyPath);
-
-                if (keyFile.exists()) {
-                    final Path keyPath = keyFile.toPath();
-                    final byte[] bytes = Files.readAllBytes(keyPath);
-                    credentials.add(new AESKey(bytes));
-                } else {
-                    console.error("The specified keyfile does not exist");
-                }
-            } else if (CREDENTIAL_RSA_KEY.equals(authOption)) {
-                final String keyPath = console.askInput("Enter path to private key file");
-                final File keyFile = new File(keyPath);
-
-                if (keyFile.exists()) {
-                    final byte[] bytes = Base64.getDecoder().decode(Files.readAllBytes(keyFile.toPath()));
-                    credentials.add(new RSAPrivateKey(bytes));
-                }
-            } else {
-                console.error("The selected authentication mode (" + authOption + ") is invalid, skipping");
-            }
+        final Either<String, Credentials> reduced = options.getAuthOptions().stream()
+                .map(opt -> authMapping
+                    .getOrDefault(opt, () -> Either.left(defaultMessage)))
+                    .map(f -> f.get())
+                    .reduce(reduceDefault, (acc, currentItem) -> {
+                        if (acc.isRight() && currentItem.isRight()) {
+                            final Credentials credentials = acc.right().value();
+                            credentials.add(currentItem.right().value());
+                            return Either.right(credentials);
+                       } else if (acc.isRight()) {
+                            return Either.left(currentItem.left().value());
+                        } else {
+                            return acc;
+                        }
+                  }, (a, b) -> {
+                        if (a.isRight() && b.isRight()) {
+                            return b;
+                        } else {
+                            return a;
+                        }
+                 });
+        if (reduced.isRight()) {
+            return reduced.right().value();
+        } else {
+            throw new IOException(reduced.left().value());
         }
-
-        return credentials;
     }
 }

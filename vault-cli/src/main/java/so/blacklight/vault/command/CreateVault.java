@@ -12,6 +12,7 @@ public class CreateVault extends VaultCommand {
 
     public CreateVault(final Options options) {
         super(options);
+        setAuthMapping(VaultCommand.CREDENTIAL_RSA_KEY, () -> credentialsBuilder.requireRSAPublicKey());
     }
 
     @Override

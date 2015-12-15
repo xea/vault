@@ -10,12 +10,15 @@ import so.blacklight.vault.VaultException;
 import so.blacklight.vault.VaultStore;
 import so.blacklight.vault.command.CLICommand;
 import so.blacklight.vault.command.ShowHelp;
+import so.blacklight.vault.crypto.KeyManager;
 import so.blacklight.vault.crypto.Password;
 import so.blacklight.vault.crypto.RSAPrivateKey;
 import so.blacklight.vault.store.StreamVaultStore;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -123,7 +126,7 @@ public class VaultCLITest {
     }
 
     @Test
-    public void testSingleRSAKeyEncryption() throws IOException, VaultException {
+    public void testSingleRSAKeyEncryption() throws IOException, VaultException, InvalidKeySpecException, NoSuchAlgorithmException {
         final File tmpPrivateKey = File.createTempFile("junit", "-private.vlt");
         final File tmpPublicKey = File.createTempFile("junit", "-public.vlt");
         tmpPrivateKey.deleteOnExit();
@@ -136,14 +139,14 @@ public class VaultCLITest {
         VaultCLI.main(genargs);
 
         final String[] args = new String[] { "-create-vault", "-v", randomFile.getAbsolutePath(), "-m", "rsa" };
-        updateInput(tmpPrivateKey.getAbsolutePath());
+        updateInput(tmpPublicKey.getAbsolutePath());
         VaultCLI.main(args);
 
         assertTrue(randomFile.exists());
         assertTrue(randomFile.length() > 0);
 
-        final byte[] keyBytes = Files.readAllBytes(tmpPrivateKey.toPath());
-        final Credentials credentials = new Credentials(Arrays.asList(new RSAPrivateKey(keyBytes)));
+        final KeyManager keyManager = new KeyManager();
+        final Credentials credentials = new Credentials(Arrays.asList(keyManager.loadRSAPrivateKey(tmpPrivateKey)));
         Either<String, Vault> load = store.load(credentials, randomFile);
         assertTrue(load.isRight());
     }
