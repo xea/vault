@@ -73,7 +73,7 @@ public class RSATester {
         final Cipher encCipher = Cipher.getInstance("RSA");
         encCipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
-        final File cipherFile = new File("/Users/specsi/workspaces/java/vault/output.enc");
+        final File cipherFile = new File("output.enc");
         final FileOutputStream fos = new FileOutputStream(cipherFile);
         final CipherOutputStream cos = new CipherOutputStream(fos, encCipher);
 
