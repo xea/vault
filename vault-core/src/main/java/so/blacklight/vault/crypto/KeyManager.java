@@ -2,12 +2,12 @@ package so.blacklight.vault.crypto;
 
 import so.blacklight.vault.collection.Tuple2;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import java.io.*;
 import java.nio.file.Files;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -26,6 +26,16 @@ public class KeyManager {
         return result;
     }
 
+    public AESKey generateAESKey(final int keyLength) throws NoSuchAlgorithmException {
+        final KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+        keyGenerator.init(keyLength);
+        final SecretKey secretKey = keyGenerator.generateKey();
+
+        final AESKey key = new AESKey(secretKey.getEncoded());
+
+        return key;
+    }
+
     public RSAPublicKey loadRSAPublicKey(File source) throws IOException {
         final byte[] rawBytes = Files.readAllBytes(source.toPath());
 
@@ -35,10 +45,6 @@ public class KeyManager {
 
     public RSAPrivateKey loadRSAPrivateKey(final File source) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         final byte[] rawBytes = Base64.getDecoder().decode(stripPemHeaders(Files.readAllBytes(source.toPath())));
-        /*final KeySpec keySpec = new PKCS8EncodedKeySpec(rawBytes);
-
-        final KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        final PrivateKey privateKey = keyFactory.generatePrivate(keySpec);*/
 
         final RSAPrivateKey result = new RSAPrivateKey(rawBytes);
 

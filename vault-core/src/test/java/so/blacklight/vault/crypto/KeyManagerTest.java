@@ -27,8 +27,12 @@ public class KeyManagerTest {
     }
 
     @Test
-    public void shouldGenerateValidAESKeys() {
-        fail("Not implemented");
+    public void shouldGenerateValidAESKeys() throws NoSuchAlgorithmException {
+        final AESKey aesKey = keyManager.generateAESKey(256);
+
+        assertNotNull(aesKey);
+        assertNotNull(aesKey.getBytes());
+        assertEquals(32, aesKey.getBytes().length);
     }
 
     @Test
@@ -46,31 +50,6 @@ public class KeyManagerTest {
         assertNotNull(decrypted);
         assertTrue(decrypted.isRight());
         assertEquals("secret", decrypted.right().value());
-    }
-
-    @Test
-    public void canLoadPK8PrivateKeysWithHeaders() {
-        fail("Not implemented");
-    }
-
-    @Test
-    public void canLoadPK8PrivateKeysWithoutHeaders() {
-        fail("Not implemented");
-    }
-
-    @Test
-    public void canLoadDERPublicKeys() {
-        fail("Not implemented");
-    }
-
-    @Test
-    public void canLoadBase64EncodedAESKeys() {
-        fail("Not implemented");
-    }
-
-    @Test
-    public void canDetectKeyFileFormat() {
-        fail("Not implemented");
     }
 
     @Test
