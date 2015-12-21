@@ -64,6 +64,14 @@ public class Options {
     }
 
     @Option
+    @ShortSwitch("cf")
+    @LongSwitch("create-folder")
+    @Toggle(false)
+    public void requestCreateFolder(boolean value) {
+        overrideDefaultAction(Action.CREATE_FOLDER);
+    }
+
+    @Option
     @ShortSwitch("s")
     @LongSwitch("show-entry")
     @Toggle(false)

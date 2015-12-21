@@ -18,6 +18,7 @@ public class ShowHelp extends VaultCommand {
                     "    vault -create -v <vault> [OPTS]                                 Create new vault",
                     "    vault -list -v <vault> [OPTS]                                   List vault entries",
                     "    vault -create-entry -a <alias> -t <TYPE> -v <vault> [OPTS]      Create a new vault entry",
+                    "    vault -create-folder -a <alias> -v <vault> [OPTS]               Create a new folder entry",
                     "    vault -info -v <vault>                                          Show information about the selected vault",
                     "    vault -show-entry -a <alias> -v <vault>                         Show the specified entry",
                     "", "",
