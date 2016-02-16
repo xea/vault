@@ -1,5 +1,7 @@
 package so.blacklight.vault;
 
+import so.blacklight.vault.crypto.Credential;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;

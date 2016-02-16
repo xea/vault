@@ -1,7 +1,5 @@
 package so.blacklight.vault.crypto;
 
-import so.blacklight.vault.Credential;
-
 public class RSAPublicKey implements Credential {
 
     private final byte[] bytes;

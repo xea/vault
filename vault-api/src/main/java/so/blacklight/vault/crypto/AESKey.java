@@ -1,7 +1,5 @@
 package so.blacklight.vault.crypto;
 
-import so.blacklight.vault.Credential;
-
 /**
  * Represents an encryption key used with AES ciphers.
  */

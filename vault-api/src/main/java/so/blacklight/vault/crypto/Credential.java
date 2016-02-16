@@ -1,4 +1,4 @@
-package so.blacklight.vault;
+package so.blacklight.vault.crypto;
 
 /**
  * A credential is a piece of information that proves a person's identity
