@@ -118,17 +118,18 @@ public class RSAEncryptionParameter extends EncryptionParameter {
      * @param encodedBytes input bytes
      * @return <code>true</code> if the input bytes are a valid RSA key, otherwise <code>false</code>
      */
-    /*
     public static boolean supports(byte[] encodedBytes) {
         boolean result = false;
 
-        if (encodedBytes != null && encodedBytes.length > PRIVATE_PREFIX.length) {
-            if (Arrays.equals(Arrays.copyOf(encodedBytes, PRIVATE_PREFIX.length), PRIVATE_PREFIX)) {
+        if (encodedBytes != null && encodedBytes.length > PREFIX_LENGTH) {
+            if (Arrays.equals(Arrays.copyOf(encodedBytes, PREFIX_LENGTH), PRIVATE_PREFIX)) {
+                result = true;
+            } else if (Arrays.equals(Arrays.copyOf(encodedBytes, PREFIX_LENGTH), PUBLIC_PREFIX)) {
                 result = true;
             }
         }
 
         return result;
-    }*/
+    }
 
 }

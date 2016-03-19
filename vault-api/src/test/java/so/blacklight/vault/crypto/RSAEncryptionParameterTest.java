@@ -16,21 +16,29 @@ public class RSAEncryptionParameterTest {
     @Test
     public void encodedBytesShouldHaveAPrefix() throws NoSuchAlgorithmException {
         final KeyPair kpg = KeyPairGenerator.getInstance("RSA").generateKeyPair();
-        final RSAEncryptionParameter param = new RSAEncryptionParameter(kpg.getPrivate());
-        final byte[] encoded = param.getEncoded();
+        final RSAEncryptionParameter privateParam = new RSAEncryptionParameter(kpg.getPrivate());
+        final RSAEncryptionParameter publicParam = new RSAEncryptionParameter(kpg.getPublic());
+        final byte[] privateEncoded = privateParam.getEncoded();
+        final byte[] publicEncoded = publicParam.getEncoded();
 
-        assertNotNull(encoded);
-        assertArrayEquals(RSAEncryptionParameter.PRIVATE_PREFIX, Arrays.copyOf(encoded, RSAEncryptionParameter.PRIVATE_PREFIX.length));
+        assertNotNull(privateEncoded);
+        assertNotNull(publicEncoded);
+        assertArrayEquals(RSAEncryptionParameter.PRIVATE_PREFIX, Arrays.copyOf(privateEncoded, RSAEncryptionParameter.PREFIX_LENGTH));
+        assertArrayEquals(RSAEncryptionParameter.PUBLIC_PREFIX, Arrays.copyOf(publicEncoded, RSAEncryptionParameter.PREFIX_LENGTH));
     }
 
     @Test
     public void shouldBeAbleToParseGeneratedEncodedBytes() throws NoSuchAlgorithmException {
         final KeyPair kpg = KeyPairGenerator.getInstance("RSA").generateKeyPair();
-        final RSAEncryptionParameter param = new RSAEncryptionParameter(kpg.getPrivate());
-        final byte[] encoded = param.getEncoded();
+        final RSAEncryptionParameter privateParam = new RSAEncryptionParameter(kpg.getPrivate());
+        final RSAEncryptionParameter publicParam = new RSAEncryptionParameter(kpg.getPublic());
+        final byte[] privateEncoded = privateParam.getEncoded();
+        final byte[] publicEncoded = publicParam.getEncoded();
 
-        final RSAEncryptionParameter paramNew = new RSAEncryptionParameter(encoded);
+        final RSAEncryptionParameter newPrivate = new RSAEncryptionParameter(privateEncoded);
+        final RSAEncryptionParameter newPublic = new RSAEncryptionParameter(publicEncoded);
 
-        assertArrayEquals(encoded, paramNew.getEncoded());
+        assertArrayEquals(privateEncoded, newPrivate.getEncoded());
+        assertArrayEquals(publicEncoded, newPublic.getEncoded());
     }
 }

@@ -4,23 +4,6 @@ import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
-/*
-import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-
-import javax.crypto.spec.SecretKeySpec;
-
-import com.lambdaworks.crypto.SCrypt;
-
-import so.blacklight.vault.Credential;
-*/
-
 
 /**
  * Encapsulates the information necessary to encrypt/decrypt an object.

@@ -1,6 +1,4 @@
-package so.blacklight.vault;
-
-import so.blacklight.vault.crypto.Credential;
+package so.blacklight.vault.crypto;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
