@@ -1,4 +1,4 @@
-package so.blacklight.vault;
+package so.blacklight.vault.entry;
 
 import java.io.Serializable;
 
